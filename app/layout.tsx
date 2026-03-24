@@ -6,6 +6,9 @@ import { microdata } from "@/lib/microdata";
 import { cn } from "@/lib/utils";
 import { MicrodataScript } from "@/providers/MicrodataScript";
 import "./globals.css";
+import { Inter } from "next/font/google";
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const homePageMicrodata = microdata("WebSite", {
 	name: "next-ts",
@@ -48,7 +51,7 @@ export const metaData: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang="en">
+		<html lang="en" className={cn("font-sans", inter.variable)}>
 			<body className={cn("bg-background", barrio.variable, dmSans.variable)}>
 				{children}
 				<MicrodataScript id="home-microdata" microdata={homePageMicrodata} />
