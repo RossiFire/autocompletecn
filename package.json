@@ -25,6 +25,7 @@
     ]
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^2.0.2",
     "@gsap/react": "^2.1.2",
     "@hugeicons/core-free-icons": "^4.0.0",
     "@hugeicons/react": "^1.1.6",
