@@ -1,0 +1,36 @@
+{
+	"$schema": "https://ui.shadcn.com/schema/registry.json",
+	"name": "autocompletecn",
+	"homepage": "https://autocompletecn.dev",
+	"items": [
+		{
+			"name": "use-autocomplete",
+			"type": "registry:hook",
+			"title": "useAutocomplete",
+			"description": "A React hook for Google Maps Places autocomplete with session tokens, suggestions, and place details.",
+			"dependencies": ["@googlemaps/js-api-loader"],
+			"files": [
+				{
+					"path": "hooks/use-autocomplete.ts",
+					"type": "registry:hook",
+					"target": "hooks/use-autocomplete.ts"
+				}
+			]
+		},
+		{
+			"name": "autocomplete",
+			"type": "registry:ui",
+			"title": "Autocomplete",
+			"description": "A composable Google Maps Places autocomplete component with keyboard navigation, highlighting, and accessible listbox.",
+			"dependencies": ["@googlemaps/js-api-loader", "lucide-react"],
+			"registryDependencies": ["use-autocomplete", "button", "input", "popover"],
+			"files": [
+				{
+					"path": "components/ui/autocomplete.tsx",
+					"type": "registry:ui",
+					"target": "components/ui/autocomplete.tsx"
+				}
+			]
+		}
+	]
+}

@@ -23,6 +23,8 @@ type PlaceDetails = {
 
 type UseAutocompleteReturn = {
     isLoaded: boolean;
+    isStale: boolean;
+    error: Error | null;
     getSuggestions: (input: string, requestOptions?: RequestOptions) => void;
     getPlaceDetails: (prediction: PlacePrediction) => Promise<PlaceDetails>;
     autocomplete: <T extends React.ComponentProps<"input">>(field: T, requestOptions?: RequestOptions) => T & {
@@ -35,27 +37,39 @@ let apiInitialized = false;
 
 type UseAutocompleteOptions = Omit<APIOptions, 'key'> & {
     sessionToken?: google.maps.places.AutocompleteSessionToken;
+    /**
+     * The debounce time in milliseconds to wait before fetching suggestions.
+     * 
+     * It's advised to set this to at least 200ms to avoid excessive API calls and improve user experience.
+     * 
+     * @default 200
+     */
+    debounceMs?: number;
 };
 
 const useAutocomplete = (
     apiKey: string,
     apiOptions?: UseAutocompleteOptions
 ): UseAutocompleteReturn => {
-    const { sessionToken: externalToken, ...loaderOptions } = apiOptions ?? {};
+    const { sessionToken: externalToken, debounceMs = 200, ...loaderOptions } = apiOptions ?? {};
 
     const [isLoaded, setIsLoaded] = useState(false);
+    const [isStale, setIsStale] = useState(false);
+    const [error, setError] = useState<Error | null>(null);
     const [places, setPlaces] = useState<PlacePrediction[] | undefined>(undefined);
 
     const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(
         externalToken ?? null
     );
+    const loaderOptionsRef = useRef(loaderOptions);
+    const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
     const requestIdRef = useRef(0);
 
     useEffect(() => {
         let cancelled = false;
 
         if (!apiInitialized) {
-            setOptions({ key: apiKey, ...loaderOptions });
+            setOptions({ key: apiKey, ...loaderOptionsRef.current });
             apiInitialized = true;
         }
 
@@ -68,11 +82,19 @@ const useAutocomplete = (
         });
 
         return () => { cancelled = true; };
-    }, [apiKey, loaderOptions]);
+    }, [apiKey]);
+
+    useEffect(() => {
+        return () => clearTimeout(debounceRef.current);
+    }, []);
 
     const getSuggestions = useCallback((input: string, requestOptions?: RequestOptions) => {
+        clearTimeout(debounceRef.current);
+        setError(null);
+
         if (!input) {
             setPlaces([]);
+            setIsStale(false);
             if (sessionTokenRef.current) {
                 sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
             }
@@ -81,28 +103,41 @@ const useAutocomplete = (
 
         if (!sessionTokenRef.current) return;
 
-        const currentRequestId = ++requestIdRef.current;
+        setIsStale(true);
 
-        google.maps.places.AutocompleteSuggestion
-            .fetchAutocompleteSuggestions({
-                ...requestOptions,
-                input,
-                sessionToken: sessionTokenRef.current,
-            })
-            .then(({ suggestions }) => {
-                if (currentRequestId !== requestIdRef.current) return;
+        const fetchSuggestions = () => {
+            const currentRequestId = ++requestIdRef.current;
 
-                setPlaces(
-                    suggestions
-                        .map((s) => s.placePrediction)
-                        .filter((p): p is PlacePrediction => p !== null)
-                );
-            })
-            .catch(() => {
-                if (currentRequestId !== requestIdRef.current) return;
-                setPlaces([]);
-            });
-    }, []);
+            google.maps.places.AutocompleteSuggestion
+                .fetchAutocompleteSuggestions({
+                    ...requestOptions,
+                    input,
+                    sessionToken: sessionTokenRef.current!,
+                })
+                .then(({ suggestions }) => {
+                    if (currentRequestId !== requestIdRef.current) return;
+
+                    setPlaces(
+                        suggestions
+                            .map((s) => s.placePrediction)
+                            .filter((p): p is PlacePrediction => p !== null)
+                    );
+                    setIsStale(false);
+                })
+                .catch((err: unknown) => {
+                    if (currentRequestId !== requestIdRef.current) return;
+                    setError(err instanceof Error ? err : new Error(String(err)));
+                    setPlaces([]);
+                    setIsStale(false);
+                });
+        };
+
+        if (debounceMs > 0) {
+            debounceRef.current = setTimeout(fetchSuggestions, debounceMs);
+        } else {
+            fetchSuggestions();
+        }
+    }, [debounceMs]);
 
     const getPlaceDetails = useCallback(async (prediction: PlacePrediction): Promise<PlaceDetails> => {
         const place = prediction.toPlace();
@@ -138,6 +173,12 @@ const useAutocomplete = (
             ...field,
             onChange: (e: ChangeEvent<HTMLInputElement>) => {
                 field.onChange?.(e);
+                // This check is to prevent the suggestions from being called 
+                // when the value is set programmatically by the onChange handler
+                // We still need to emit the string value otherwise the form will not be updated
+                if (typeof e === 'string') {
+                    return e;
+                }
                 getSuggestions(e.target.value, requestOptions);
                 return e;
             },
@@ -145,7 +186,7 @@ const useAutocomplete = (
         [getSuggestions]
     );
 
-    return { isLoaded, getSuggestions, getPlaceDetails, autocomplete, places };
+    return { isLoaded, isStale, error, getSuggestions, getPlaceDetails, autocomplete, places };
 };
 
 export { useAutocomplete };

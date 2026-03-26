@@ -28,6 +28,7 @@ type AutocompleteContextValue = {
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     handleFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
+    handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
 };
 
 const AutocompleteContext = React.createContext<AutocompleteContextValue | null>(null);
@@ -55,6 +56,7 @@ function AutocompleteInput({
                     onChange={ctx.handleChange}
                     onKeyDown={ctx.handleKeyDown}
                     onFocus={ctx.handleFocus}
+                    onBlur={ctx.handleBlur}
                     disabled={disabled}
                     role="combobox"
                     aria-expanded={ctx.isOpen}
@@ -154,13 +156,50 @@ function AutocompleteList() {
 }
 
 type AutocompleteProps = Omit<React.ComponentProps<'input'>, 'onChange' | 'value'> & {
+    /**
+     * The Google Maps API key to use.
+     * 
+     * @see https://developers.google.com/maps/documentation/javascript/get-api-key
+     */
     apiKey: string;
+    /**
+     * The options to pass during Google Autocomplete API setup.
+     * 
+     * @see UseAutocompleteOptions
+     */
     setupOptions?: UseAutocompleteOptions;
+    /**
+     * The options to pass to every suggestion fetch request.
+     * 
+     * @see RequestOptions
+     */
     requestOptions?: RequestOptions;
+    /**
+     * The output format to use for the selected place.
+     * 
+     * @default 'routeOnly'
+     * 
+     * - routeOnly: '123 Main St'
+     * - formatted: '123 Main St, Anytown, USA'
+     */
     output?: 'routeOnly' | 'formatted';
+    /**
+     * The function to call when a place is selected.
+     * 
+     * @param details The details of the selected place.
+     * It already has some formatted informations like street, city, country, etc.
+     * Additionally it contains the raw place object from the Google Autocomplete API.
+     */
     onPlaceSelect?: (details: PlaceDetails) => void;
-    apiDebounceRateMs?: number;
-    onChange?: (value: string | React.ChangeEvent<HTMLInputElement>) => void;
+    /**
+     * The debounce time in milliseconds to wait before fetching suggestions.
+     * 
+     * It's advised to set this to at least 200ms to avoid excessive API calls and improve user experience.
+     * 
+     * @default 200
+     */
+    debounceMs?: number;
+    onChange?: (value: string) => void;
     value?: string;
 };
 
@@ -169,24 +208,26 @@ function Autocomplete({
     apiKey,
     setupOptions,
     requestOptions,
-    output = 'formatted',
+    output = 'routeOnly',
     onPlaceSelect,
-    apiDebounceRateMs = 200,
+    debounceMs,
     onChange,
     value = '',
     onFocus,
+    onBlur,
     disabled,
     ...props
 }: AutocompleteProps) {
-    const { isLoaded, getSuggestions, getPlaceDetails, places } = useAutocomplete(apiKey, setupOptions);
+    const { isLoaded, isStale, getSuggestions, getPlaceDetails, places } = useAutocomplete(apiKey, {
+        ...setupOptions,
+        debounceMs,
+    });
 
     const [inputValue, setInputValue] = React.useState(value);
     const [isOpen, setIsOpen] = React.useState(false);
     const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
-    const [isStale, setIsStale] = React.useState(false);
 
     const anchorRef = React.useRef<HTMLDivElement>(null);
-    const debounceRef = React.useRef<ReturnType<typeof setTimeout>>(undefined);
     const listId = React.useId();
 
     React.useEffect(() => {
@@ -194,12 +235,7 @@ function Autocomplete({
     }, [value]);
 
     React.useEffect(() => {
-        return () => clearTimeout(debounceRef.current);
-    }, []);
-
-    React.useEffect(() => {
         if (places !== undefined) {
-            setIsStale(false);
             setIsOpen(places.length > 0);
             setHighlightedIndex(-1);
         }
@@ -221,21 +257,8 @@ function Autocomplete({
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setInputValue(val);
-        onChange?.(e);
-
-        clearTimeout(debounceRef.current);
-
-        if (!val) {
-            setIsOpen(false);
-            setIsStale(false);
-            getSuggestions('');
-            return;
-        }
-
-        setIsStale(true);
-        debounceRef.current = setTimeout(() => {
-            getSuggestions(val, requestOptions);
-        }, apiDebounceRateMs);
+        onChange?.(val);
+        getSuggestions(val, requestOptions);
     };
 
     const handleSelect = async (prediction: PlacePrediction) => {
@@ -247,6 +270,7 @@ function Autocomplete({
 
         setInputValue(formatted);
         onPlaceSelect?.(details);
+        onChange?.(formatted);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -285,6 +309,10 @@ function Autocomplete({
         onFocus?.(e);
     };
 
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        onBlur?.(e);
+    };
+
     const contextValue: AutocompleteContextValue = {
         listId,
         isOpen,
@@ -298,6 +326,7 @@ function Autocomplete({
         handleChange,
         handleKeyDown,
         handleFocus,
+        handleBlur,
     };
 
     return (
@@ -356,7 +385,7 @@ function HighlightedText({ formattable }: { formattable: google.maps.places.Form
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 433" {...props}>
-        <title>Google Brand Icon</title>
+        <title>Google Icon</title>
         <path fill="#4185F4" d="M266.941 36.488c3.815 3.393 7.448 6.9 11.059 10.512l-32 32c-8.282-6.212-8.282-6.212-12-9.312-23.711-18.32-54.079-24.67-83.543-21.22-29.478 4.216-57.188 19.5-75.25 43.355-19.249 26.383-27.521 58.039-23.02 90.482C54.567 197.175 59.544 210.96 67 224l1.645 2.938c15.058 25.206 40.188 42.913 68.386 50.487 29.855 7.395 62.462 3.59 89.215-11.758C246.673 253.344 259.982 235.614 267 213l4-18H166v-45h150c1.325 9.273 2.36 17.747 2.313 27l-.015 3.521c-.554 41.532-14.793 77.417-44.154 106.772C262.334 298.776 249.08 307.436 234 314l-1.915.834c-39.377 16.742-86.993 16.924-126.621.958C68.03 300.127 38.268 273.736 19 238l-1.582-2.809c-18.93-35.213-20.794-78.564-10.22-116.539C15.043 92.714 29.136 70.287 48 51l2.156-2.344C61.47 36.647 75.378 27.453 90 20l2.03-1.058C146.99-9.48 219.332-3.786 266.94 36.488" />
         <path fill="#4285F4" d="M936.203 133.71c4.547 3.79 4.547 3.79 5.797 6.29l1-16h45q.035 36.72.052 73.438.007 17.051.023 34.103.015 14.871.02 29.743 0 7.866.01 15.731.012 7.423.008 14.846 0 2.706.006 5.411c.067 32.887-2.302 66.95-25.119 92.728l-2.367 2.965C946.876 409.48 923.745 417.537 903 420c-4.775.285-9.53.335-14.312.313l-3.882-.018c-8.971-.115-17.19-.618-25.806-3.295l-1.944-.602c-26.098-8.321-47.106-26.922-59.744-51.086-1.449-2.886-1.449-2.886-2.312-5.312 1-3 1-3 2.55-3.968l2.02-.841 2.286-.97 2.484-1.014 2.537-1.063q2.659-1.11 5.324-2.206c2.726-1.121 5.446-2.258 8.164-3.397q2.58-1.075 5.162-2.146l2.478-1.032C833.765 341 833.765 341 836 341l1.18 2.457c7.74 15.319 18.363 25.598 34.53 31.816 14.093 4.473 30.892 2.636 44.087-3.593 12.225-6.78 18.807-16.804 23.27-29.782 2.556-8.967 3.07-17.557 2.995-26.836l-.013-3.228A2271 2271 0 0 0 942 304l-1.535 1.603c-14.611 14.983-33.068 21.186-53.715 21.71-29.431-.515-53.8-13.537-74.121-34.38-18.815-20.995-27.782-48.691-26.453-76.703C788.206 186.24 801.48 159.88 824 140c32.285-25.653 78.14-32.743 112.203-6.29M850 177c-6.12 7.701-10.78 15.65-14 25l-.707 2c-4.802 16.03-2.225 34.054 4.707 49 8.5 14.848 19.999 24.844 36.434 30.098 13.861 3.51 27.465 2.341 40.168-4.606C929.56 270.43 938.14 259.467 943 245l.965-2.684c5.424-17.62 2.774-37.789-5.465-54.066-7.876-14.304-19.946-23.212-35.39-28.18-2.392-.549-4.666-.876-7.11-1.07l-2.266-.242C877.69 157.855 860.737 165.203 850 177" />
         <path fill="#EA4334" d="M434.91 116.844c29.897-.799 57.79 8.674 79.741 29.405 18.488 18.067 29.863 43.143 30.65 69.048q.03 3.226.011 6.453c-.005 1.137-.01 2.275-.017 3.447-.359 25.01-9.307 49.252-26.295 67.803l-2.336 2.582c-18.594 19.587-45.194 30.663-72.043 31.602-29.554.628-56.406-8.607-78.18-28.813-18.86-18.317-30.95-43.164-31.742-69.668-.266-29.183 6.102-56.589 26.795-78.203A434 434 0 0 1 366 146l2.46-2.492c17.47-16.773 42.52-25.708 66.45-26.664m-38.152 61.812c-5.025 6.392-8.976 12.697-11.758 20.344l-.965 2.582c-5.58 17.977-2.624 37.722 5.945 54.086 3.082 5.085 6.77 9.201 11.02 13.332l1.895 1.957c9.667 9.342 24.006 14.003 37.293 14.356 17.107-.662 31.71-8.367 43.453-20.547C496.91 249.21 499.286 230.665 498 211c-1.972-15.201-10.027-29.278-21.625-39.187-24.11-18.47-59.536-16.946-79.617 6.843" />

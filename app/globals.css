@@ -122,9 +122,82 @@
     @apply border-border outline-ring/50;
 	}
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
 	}
   html {
-    @apply font-sans;
+    @apply overscroll-y-none;
 	}
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+	}
+}
+
+.container {
+	@apply max-w-[1440px] mx-auto px-6;
+}
+
+.container-wide {
+	@apply max-w-[1640px] mx-auto px-6;
+}
+
+@keyframes fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes scale-in {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.animate-fade-up {
+	animation: fade-up 0.5s ease-out both;
+}
+
+.animate-fade-in {
+	animation: fade-in 0.5s ease-out both;
+}
+
+.animate-scale-in {
+	animation: scale-in 0.5s ease-out both;
+}
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+
+html .shiki,
+html .shiki span {
+	color: var(--shiki-light) !important;
+	background-color: transparent !important;
+}
+
+html.dark .shiki,
+html.dark .shiki span {
+	color: var(--shiki-dark) !important;
+	background-color: transparent !important;
 }
