@@ -354,41 +354,67 @@ function IntegratedDemo() {
 // Demo 2: Custom component (simple usage)
 // ---------------------------------------------------------------------------
 
-function ComponentDemo() {
-	const [result, setResult] = React.useState<MockPlaceDetails | null>(null);
-	const [value, setValue] = React.useState("");
+function ShadcnWithYourUIDemo() {
+	const [query, setQuery] = React.useState("");
+	const [places, setPlaces] = React.useState<MockPrediction[]>([]);
+	const [selected, setSelected] = React.useState<MockPlaceDetails | null>(null);
 
-	const handlePlaceSelect = (details: MockPlaceDetails) => {
-		setResult(details);
-		setTimeout(() => {
-			setValue(details.formattedAddress ?? "");
-		});
+	const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const val = e.target.value;
+		setQuery(val);
+		setPlaces(filterAddresses(val));
+		setSelected(null);
+	};
+
+	const handlePlaceClick = (place: MockPrediction) => {
+		setQuery(place.mainText);
+		setSelected(place.details);
+		setPlaces([]);
 	};
 
 	return (
-		<div className="space-y-4 w-full">
+		<form onSubmit={(e) => e.preventDefault()} className="w-full space-y-4">
 			<Field>
-				<FieldLabel>Search address</FieldLabel>
-				<DemoAutocomplete
-					value={value}
-					onChange={setValue}
-					placeholder="Type to search..."
-					onPlaceSelect={handlePlaceSelect}
-				/>
+				<FieldLabel>Street</FieldLabel>
+				<div className="relative">
+					<Input
+						placeholder="Street"
+						value={query}
+						onChange={handleInput}
+						autoComplete="off"
+					/>
+					{places.length > 0 && (
+						<Card className="absolute top-[calc(100%+4px)] left-0 z-10 flex w-full flex-col gap-0.5 p-1">
+							{places.map((place) => (
+								<Button
+									key={place.placeId}
+									variant="ghost"
+									type="button"
+									className="flex w-full items-center justify-start gap-2 px-2 py-1.5"
+									onClick={() => handlePlaceClick(place)}
+								>
+									<MapPinIcon className="size-4 shrink-0" />
+									<p className="truncate text-sm">{place.mainText}</p>
+									<span className="text-muted-foreground truncate text-xs">{place.secondaryText}</span>
+								</Button>
+							))}
+						</Card>
+					)}
+				</div>
 			</Field>
-			<p className="text-xs text-muted-foreground italic">*For this demo, data are mocked. No data are obtained from the Google Maps API. The "powered by google" logo is only for final demonstration purposes.</p>
-			{result && (
+			<p className="text-muted-foreground text-xs italic">*For this demo, data are mocked. No data are obtained from the Google Maps API.</p>
+			{selected && (
 				<Card>
 					<CardContent>
-						{Object.keys(result).map((key) => (
+						{Object.keys(selected).map((key) => (
 							<div key={key}>
-								<span className="text-xs text-muted-foreground"><b>{key}</b>: {result[key as keyof MockPlaceDetails]}</span>
+								<span className="text-xs text-muted-foreground"><b>{key}</b>: {selected[key as keyof MockPlaceDetails]}</span>
 							</div>
 						))}
 					</CardContent>
 				</Card>
 			)}
-		</div>
+		</form>
 	);
 }
 
@@ -501,18 +527,65 @@ export function AutocompleteForm() {
   );
 }`;
 
-const COMPONENT_CODE = `import { Autocomplete } from "@/components/ui/autocomplete";
+const COMPONENT_CODE = `const schema = z.object({
+  street: z.string().min(5).max(100),
+  city: z.string().min(2),
+  country: z.string().min(2),
+  postalCode: z.string().min(3),
+});
 
-export function AddressSearch() {
+
+export function AutocompleteForm() {
+
+   const { 
+	isLoaded, 
+	places, 
+	autocomplete,
+	getDetails
+  } = useAutocomplete(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!);
+
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: { street: "", city: "", country: "", postalCode: "" },
+    mode: "onChange",
+  });
+
+  const handlePlaceSelect = (place: PlaceDetails) => {
+    form.setValue("city", place.city ?? "");
+    form.setValue("country", place.country ?? "");
+    form.setValue("postalCode", place.postalCode ?? "");
+    form.trigger();
+  };
+
   return (
-    <Autocomplete
-      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-      placeholder="Search for an address..."
-      onPlaceSelect={(details) => {
-        console.log(details.formattedAddress);
-        console.log(details.city, details.country);
-      }}
-    />
+    <form onSubmit={form.handleSubmit(console.log)}>
+		<Controller
+		control={form.control}
+		name="street"
+		render={({ field, fieldState }) => (
+			<Field data-invalid={fieldState.invalid}>
+				<FieldLabel>Street</FieldLabel>
+				<div className="relative">
+					<Input disabled={!isLoaded} placeholder="Street" {...autocomplete(field, { includedPrimaryTypes: ['route'] })} />
+					{(places && places.length > 0) && (
+						<Card className="w-full top-[115%] flex flex-col gap-2 absolute z-10 p-0">
+							{places.map((place) => (
+								<Button key={place.placeId} variant="ghost" className="flex items-center justify-start gap-2 py-1 px-2 w-full" onClick={() => handlePlaceSelect(place)}>
+								<MapPinIcon className="size-4" />
+									<p className="text-sm truncate">{place.text.text}</p>
+								</Button>
+							))}
+						</Card>
+					)}
+				</div>
+				{fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+			</Field>
+		)}
+		/>
+
+      ...
+	  
+    </form>
   );
 }`;
 
@@ -602,17 +675,17 @@ interface ShowcaseItem {
 const SHOWCASE_ITEMS: ShowcaseItem[] = [
 	{
 		id: 0,
-		title: "Shadcn integrated",
-		subtitle: "Full form with react-hook-form, zod and auto-filled fields",
+		title: "Full Shadcn Form",
+		subtitle: "Autocomplete with react-hook-form, zod and auto-filled fields",
 		code: INTEGRATED_CODE,
 		preview: IntegratedDemo,
 	},
 	{
 		id: 1,
-		title: "Custom component",
-		subtitle: "Drop-in autocomplete with onPlaceSelect callback",
+		title: "Shadcn Form + Your UI",
+		subtitle: "useAutocomplete hook seamlessly integrated with your own UI",
 		code: COMPONENT_CODE,
-		preview: ComponentDemo,
+		preview: ShadcnWithYourUIDemo,
 	},
 	{
 		id: 2,
