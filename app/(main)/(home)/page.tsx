@@ -127,22 +127,9 @@ export default function HomePage() {
 					</Glow>
 				</section>
 			</div>
-			<section className="container mx-auto max-w-4xl px-6 pt-12 pb-24">
-				<div className="animate-fade-up delay-100 overflow-hidden rounded-xl border bg-card shadow-lg shadow-black/5 dark:shadow-black/20">
-					<div className="flex items-center gap-2 border-b bg-muted/40 px-4 py-3">
-						<div className="flex items-center gap-1.5">
-							<span className="size-3 rounded-full bg-red-400 dark:bg-red-500/70" />
-							<span className="size-3 rounded-full bg-yellow-400 dark:bg-yellow-500/70" />
-							<span className="size-3 rounded-full bg-green-400 dark:bg-green-500/70" />
-						</div>
-						<span className="text-muted-foreground mx-auto pr-10 text-xs">
-							autocompletecn demo
-						</span>
-					</div>
-
-					<div className="px-6 py-8 sm:px-10 sm:py-48">
-						<HomepageDemo />
-					</div>
+			<section className="container mx-auto max-w-5xl px-6 pt-12 pb-24">
+				<div className="animate-fade-up delay-100">
+					<HomepageDemo />
 				</div>
 			</section>
 
