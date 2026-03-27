@@ -1,6 +1,8 @@
-import { Zap, Code, Puzzle, Box, Keyboard, Globe } from "lucide-react";
+import { Zap, Code, Puzzle, Box, Keyboard, Globe, AlertCircleIcon } from "lucide-react";
 import { DocsLayout, DocsSection, DocsLink } from "./_components/docs";
 import type { Metadata } from "next";
+import { Alert, AlertTitle } from "@/components/ui/alert";
+import Link from "next/link";
 
 const features = [
 	{
@@ -57,36 +59,34 @@ export default function GettingStartedPage() {
 				{ title: "Features", slug: "features" },
 			]}
 		>
+			<Alert variant="info">
+				<AlertCircleIcon className="size-4" />
+				<AlertTitle>Autocompletecn is not an official Google product. You are responsible for managing your own API keys and autocompletion usage according to the <Link href="https://developers.google.com/maps/documentation/places/web-service/policies" target="_blank" rel="noopener noreferrer">Policies and attributions for Places API</Link>.</AlertTitle>
+			</Alert>
 			<DocsSection title="Why autocompletecn?">
 				<p>
-					Integrating Google Maps autocomplete into a React project typically
-					involves dealing with the Google Maps JavaScript API, managing session
-					tokens, handling async script loading, and building an accessible
-					dropdown UI. <strong>autocompletecn</strong> handles all of this for
+					Integrating Google Maps autocomplete into a React project has always been
+					furstrating. The implementation differs project by project and thinks like Styling and API integration requires complex workarounds. <strong>autocompletecn</strong> handles all of this for, make the autocomplete integration seamless and easy.
 					you.
 				</p>
 				<p>
-					It follows the{" "}
+					Additionally, it is built to be fully integrated with the{" "}
 					<DocsLink href="https://ui.shadcn.com/" external>
 						shadcn/ui
 					</DocsLink>{" "}
-					philosophy: you own the code. The component and hook are copied
-					directly into your project via the shadcn CLI, giving you full control
-					to customize as needed.
+					ecosystem.
 				</p>
 			</DocsSection>
 
 			<DocsSection title="Two Ways to Use">
 				<p>
-					<strong>autocompletecn</strong> gives you two options depending on your
+					<strong>autocompletecn</strong> gives you two main options depending on your
 					needs:
 				</p>
 				<ul>
 					<li>
 						<strong>Autocomplete component</strong> &mdash; A fully styled,
-						accessible autocomplete input with a dropdown listbox, keyboard
-						navigation, and Google branding. Install it and drop it into your
-						forms.
+						accessible and compliant autocomplete component, following your shadcn/ui style, easily integrated with react-hook-form.
 					</li>
 					<li>
 						<strong>useAutocomplete hook</strong> &mdash; Just the logic. Get

@@ -142,7 +142,7 @@ const useAutocomplete = (
     const getPlaceDetails = useCallback(async (prediction: PlacePrediction): Promise<PlaceDetails> => {
         const place = prediction.toPlace();
         await place.fetchFields({
-            fields: ['addressComponents', 'location', 'formattedAddress'],
+            fields: ['addressComponents', 'location', 'formattedAddress', 'attributions'],
         });
 
         const find = (type: string) =>

@@ -15,6 +15,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Controller, useForm } from "react-hook-form";
+import { codeToHtml } from 'shiki'
 
 // ---------------------------------------------------------------------------
 // Mock data types
@@ -640,7 +641,6 @@ function useHighlightedCode(codes: string[]) {
 		let cancelled = false;
 
 		async function highlight() {
-			const { codeToHtml } = await import("shiki");
 			const results: Record<number, string> = {};
 
 			for (let i = 0; i < codes.length; i++) {

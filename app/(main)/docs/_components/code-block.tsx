@@ -15,11 +15,9 @@ export async function CodeBlock({
 	const highlighted = await highlightCode(code, language);
 
 	return (
-		<div className="w-full overflow-hidden rounded-lg border">
+		<div className="w-full overflow-hidden rounded-lg border relative bg-muted/50">
 			{showCopyButton && (
-				<div className="flex items-center justify-end border-b bg-muted/30 px-2 h-10">
-					<CopyButton text={code} />
-				</div>
+				<CopyButton text={code} className="absolute top-3 right-3" />
 			)}
 			<div
 				className="overflow-auto bg-muted/20 p-4 text-sm [&_pre]:bg-transparent! [&_code]:bg-transparent!"

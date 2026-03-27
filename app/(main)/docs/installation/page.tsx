@@ -65,15 +65,6 @@ export function CustomAutocomplete() {
   );
 }`;
 
-const routeOnlyCode = `<Autocomplete
-  apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-  output="routeOnly"
-  onPlaceSelect={(details) => {
-    // details.formattedAddress will only contain route + street number
-    console.log(details.formattedAddress);
-  }}
-/>`;
-
 export const metadata: Metadata = {
 	title: "Installation",
 };
@@ -90,7 +81,6 @@ export default function InstallationPage() {
 				{ title: "Install Just the Hook", slug: "install-just-the-hook" },
 				{ title: "Component Usage", slug: "component-usage" },
 				{ title: "Hook-only Usage", slug: "hook-only-usage" },
-				{ title: "Output Formats", slug: "output-formats" },
 			]}
 		>
 			<DocsSection title="Prerequisites">
@@ -154,23 +144,6 @@ export default function InstallationPage() {
 				<CodeBlock code={hookUsageCode} />
 			</DocsSection>
 
-			<DocsSection title="Output Formats">
-				<p>
-					The <DocsCode>output</DocsCode> prop controls what value is set in the
-					input after a place is selected:
-				</p>
-				<ul>
-					<li>
-						<DocsCode>formatted</DocsCode> (default) &mdash; Uses the full
-						formatted address from Google.
-					</li>
-					<li>
-						<DocsCode>routeOnly</DocsCode> &mdash; Uses only the route and
-						street number (e.g., &quot;123 Main St&quot;).
-					</li>
-				</ul>
-				<CodeBlock code={routeOnlyCode} />
-			</DocsSection>
 
 			<DocsNote>
 				<strong>Note:</strong> The component uses Google Maps Places API session

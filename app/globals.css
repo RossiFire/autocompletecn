@@ -37,6 +37,7 @@
 	--color-popover: var(--popover);
 	--color-card-foreground: var(--card-foreground);
 	--color-card: var(--card);
+	--color-info: var(--info);
 	--color-foreground: var(--foreground);
 	--color-background: var(--background);
 	--radius-sm: calc(var(--radius) * 0.6);
@@ -81,6 +82,8 @@
 	--sidebar-ring: oklch(0.709 0.01 56.259);
 	--background: oklch(1 0 0);
 	--foreground: oklch(0.147 0.004 49.25);
+
+	--info: #686de0;
 }
 
 .dark {
@@ -115,6 +118,8 @@
 	--sidebar-accent-foreground: oklch(0.985 0.001 106.423);
 	--sidebar-border: oklch(1 0 0 / 10%);
 	--sidebar-ring: oklch(0.553 0.013 58.071);
+
+	--info: #7ed6df;
 }
 
 @layer base {
@@ -190,14 +195,17 @@
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
 
-html .shiki,
-html .shiki span {
-	color: var(--shiki-light) !important;
+.shiki,
+.shiki span {
 	background-color: transparent !important;
 }
 
-html.dark .shiki,
+html.dark .shiki {
+	color: var(--shiki-dark) !important;
+	background-color: var(--shiki-dark-bg, transparent) !important;
+}
+
 html.dark .shiki span {
 	color: var(--shiki-dark) !important;
-	background-color: transparent !important;
 }
+

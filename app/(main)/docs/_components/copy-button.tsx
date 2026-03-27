@@ -3,8 +3,9 @@
 import { useState, useCallback } from "react";
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-export function CopyButton({ text }: { text: string }) {
+export function CopyButton({ text, className }: { text: string, className?: string }) {
 	const [copied, setCopied] = useState(false);
 
 	const handleCopy = useCallback(async () => {
@@ -17,7 +18,7 @@ export function CopyButton({ text }: { text: string }) {
 		<Button
 			variant="ghost"
 			size="icon"
-			className="size-7"
+			className={cn("size-7", className)}
 			onClick={handleCopy}
 			aria-label="Copy to clipboard"
 		>
