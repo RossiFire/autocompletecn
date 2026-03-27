@@ -21,19 +21,19 @@ const features = [
 		icon: ShieldCheck,
 		title: "Compliant",
 		className: "text-emerald-500",
-		description: "The Autocomplete component is compliant with Google Maps policies, to make you covered",
+		description: "Our provided Autocomplete component is compliant with Google Maps API Policies, including 'Provided by Google' branding, text matching highlighting and more.",
 	},
 	{
 		icon: Blocks,
 		title: "Shadcn/ui compatible",
 		className: "text-blue-500",
-		description: "The Autocomplete component is fully integrated with Shadcn/ui and react-hook-form",
+		description: "Autocomplete component is fully integrated with Shadcn/ui and react-hook-form, but still with wide customization.",
 	},
 	{
 		icon: Puzzle,
 		title: "Composable",
 		className: "text-orange-500",
-		description: "You can choose whether to use the full Autocomplete component or just the useAutocomplete hook for complete control.",
+		description: "You can choose whether to use the integrated Autocomplete component or just the useAutocomplete hook for complete control.",
 	},
 	{
 		icon: Zap,

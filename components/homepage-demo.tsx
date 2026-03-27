@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { MapPinIcon, ArrowRight, Eye, Code } from "lucide-react";
+import { MapPinIcon, ArrowRight, Eye, Code, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -373,30 +373,30 @@ function ShadcnWithYourUIDemo() {
 	};
 
 	return (
-		<form onSubmit={(e) => e.preventDefault()} className="w-full space-y-4">
+		<form onSubmit={(e) => e.preventDefault()} className="w-full space-y-4 pb-20">
 			<Field>
 				<FieldLabel>Street</FieldLabel>
 				<div className="relative">
 					<Input
-						placeholder="Street"
+						placeholder="My Custom Street Input"
 						value={query}
 						onChange={handleInput}
 						autoComplete="off"
 					/>
 					{places.length > 0 && (
-						<Card className="absolute top-[calc(100%+4px)] left-0 z-10 flex w-full flex-col gap-0.5 p-1">
+						<Card className="absolute top-[calc(100%+4px)] left-0 z-10 flex w-full flex-col gap-0.5">
+							<span className="text-muted-foreground px-2">Places:</span>
 							{places.map((place) => (
-								<Button
+								<button
 									key={place.placeId}
-									variant="ghost"
 									type="button"
-									className="flex w-full items-center justify-start gap-2 px-2 py-1.5"
+									className="flex border-l-4 border-transparent hover:border-primary transition-all w-full items-center justify-start gap-2 px-2 py-1"
 									onClick={() => handlePlaceClick(place)}
 								>
-									<MapPinIcon className="size-4 shrink-0" />
+									<Rocket className="size-4 shrink-0" />
 									<p className="truncate text-sm">{place.mainText}</p>
 									<span className="text-muted-foreground truncate text-xs">{place.secondaryText}</span>
-								</Button>
+								</button>
 							))}
 						</Card>
 					)}
