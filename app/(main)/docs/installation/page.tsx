@@ -75,6 +75,7 @@ export default function InstallationPage() {
 			title="Installation"
 			description="How to install and set up autocompletecn in your project."
 			prev={{ title: "Getting Started", href: "/docs" }}
+			next={{ title: "API Reference", href: "/docs/api-reference" }}
 			toc={[
 				{ title: "Prerequisites", slug: "prerequisites" },
 				{ title: "Install the Component", slug: "install-the-component" },
@@ -103,7 +104,7 @@ export default function InstallationPage() {
 					>
 						Google Maps API key
 					</DocsLink>{" "}
-					with the <strong>Places API (New)</strong> enabled.
+					with the <strong>Places API</strong> enabled.
 				</p>
 			</DocsSection>
 
@@ -114,10 +115,6 @@ export default function InstallationPage() {
 					dependency:
 				</p>
 				<CodeBlock code={installComponentCommand} language="bash" />
-				<p>
-					This installs <DocsCode>@googlemaps/js-api-loader</DocsCode> and adds
-					the component and hook to your project.
-				</p>
 			</DocsSection>
 
 			<DocsSection title="Install Just the Hook">

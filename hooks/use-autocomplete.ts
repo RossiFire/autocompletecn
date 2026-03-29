@@ -27,9 +27,7 @@ type UseAutocompleteReturn = {
     error: Error | null;
     getSuggestions: (input: string, requestOptions?: RequestOptions) => void;
     getPlaceDetails: (prediction: PlacePrediction) => Promise<PlaceDetails>;
-    autocomplete: <T extends React.ComponentProps<"input">>(field: T, requestOptions?: RequestOptions) => T & {
-        onChange: (e: ChangeEvent<HTMLInputElement>) => void;
-    };
+    autocomplete: <T extends React.ComponentProps<"input">>(field: T, requestOptions?: RequestOptions) => T
     places: PlacePrediction[] | undefined;
 };
 
@@ -171,16 +169,16 @@ const useAutocomplete = (
     const autocomplete = useCallback(
         <T extends React.ComponentProps<"input">>(field: T, requestOptions?: RequestOptions) => ({
             ...field,
-            onChange: (e: ChangeEvent<HTMLInputElement>) => {
-                field.onChange?.(e);
+            onChange: (e: ChangeEvent<HTMLInputElement> | string): void => {
                 // This check is to prevent the suggestions from being called 
                 // when the value is set programmatically by the onChange handler
                 // We still need to emit the string value otherwise the form will not be updated
                 if (typeof e === 'string') {
-                    return e;
+                    field.onChange?.({ target: { value: e } } as ChangeEvent<HTMLInputElement>);
+                    return;
                 }
+                field.onChange?.(e);
                 getSuggestions(e.target.value, requestOptions);
-                return e;
             },
         }),
         [getSuggestions]

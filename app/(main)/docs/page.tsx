@@ -55,7 +55,7 @@ export default function GettingStartedPage() {
 			next={{ title: "Installation", href: "/docs/installation" }}
 			toc={[
 				{ title: "Why autocompletecn?", slug: "why-autocompletecn" },
-				{ title: "Two Ways to Use", slug: "two-ways-to-use" },
+				{ title: "Two ways to use", slug: "two-ways-to-use" },
 				{ title: "Features", slug: "features" },
 			]}
 		>
@@ -65,12 +65,11 @@ export default function GettingStartedPage() {
 			</Alert>
 			<DocsSection title="Why autocompletecn?">
 				<p>
-					Integrating Google Maps autocomplete into a React project has always been
-					furstrating. The implementation differs project by project and thinks like Styling and API integration requires complex workarounds. <strong>autocompletecn</strong> handles all of this for, make the autocomplete integration seamless and easy.
-					you.
+					Integrating Google Maps Autocomplete into a React project has always been
+					furstrating. The implementation differs project by project and stuff like Styling and API integration often requires complex workarounds. <strong>autocompletecn</strong> handles all of this for, make the autocomplete integration seamless and easy.
 				</p>
 				<p>
-					Additionally, it is built to be fully integrated with the{" "}
+					Additionally, autocompletecn is built to be fully integrated with the{" "}
 					<DocsLink href="https://ui.shadcn.com/" external>
 						shadcn/ui
 					</DocsLink>{" "}
@@ -78,7 +77,7 @@ export default function GettingStartedPage() {
 				</p>
 			</DocsSection>
 
-			<DocsSection title="Two Ways to Use">
+			<DocsSection title="Two ways to use">
 				<p>
 					<strong>autocompletecn</strong> gives you two main options depending on your
 					needs:

@@ -247,13 +247,6 @@ function Autocomplete({
             ?.scrollIntoView({ block: 'nearest' });
     }, [highlightedIndex, listId]);
 
-    const formatOutput = (details: PlaceDetails): string => {
-        if (output === 'routeOnly') {
-            return `${details.route ?? ''} ${details.streetNumber ?? ''}`.trim();
-        }
-        return details.formattedAddress ?? '';
-    };
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
         setInputValue(val);
@@ -266,7 +259,7 @@ function Autocomplete({
         setHighlightedIndex(-1);
 
         const details = await getPlaceDetails(prediction);
-        const formatted = formatOutput(details);
+        const formatted = formatOutput(details, output);
 
         setInputValue(formatted);
         onPlaceSelect?.(details);
@@ -394,6 +387,14 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <path fill="#34A853" d="M1014 14h45v306h-45z" />
     </svg>
 );
+
+
+const formatOutput = (details: PlaceDetails, output: 'routeOnly' | 'formatted'): string => {
+    if (output === 'routeOnly') {
+        return `${details.route ?? ''} ${details.streetNumber ?? ''}`.trim();
+    }
+    return details.formattedAddress ?? '';
+};
 
 export { Autocomplete };
 export type { AutocompleteProps };

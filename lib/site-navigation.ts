@@ -1,4 +1,4 @@
-import { BookOpen, CornerDownRight, type LucideIcon } from "lucide-react";
+import { BookOpen, CornerDownRight, FileCode, type LucideIcon } from "lucide-react";
 
 export interface SiteNavigationItem {
 	title: string;
@@ -17,6 +17,7 @@ export const docsNavigation: SiteNavigationGroup[] = [
 		items: [
 			{ title: "Getting Started", href: "/docs", icon: BookOpen },
 			{ title: "Installation", href: "/docs/installation", icon: BookOpen },
+			{ title: "API Reference", href: "/docs/api-reference", icon: FileCode },
 		],
 	},
 ];
