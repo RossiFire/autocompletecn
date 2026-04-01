@@ -2,26 +2,20 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { MapPinIcon, ArrowRight, Eye, Code, Rocket } from "lucide-react";
+import { MapPinIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import {
 	Popover,
 	PopoverAnchor,
 	PopoverContent,
 } from "@/components/ui/popover";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Controller, useForm } from "react-hook-form";
-import { codeToHtml } from 'shiki'
 
 // ---------------------------------------------------------------------------
-// Mock data types
+// Types
 // ---------------------------------------------------------------------------
 
-interface MockAddress {
+export interface MockAddress {
 	id: string;
 	street: string;
 	city: string;
@@ -30,7 +24,7 @@ interface MockAddress {
 	region: string;
 }
 
-interface MockPlaceDetails {
+export interface MockPlaceDetails {
 	formattedAddress: string;
 	streetNumber: string | null;
 	route: string | null;
@@ -42,7 +36,7 @@ interface MockPlaceDetails {
 	placeId: string;
 }
 
-interface MockPrediction {
+export interface MockPrediction {
 	placeId: string;
 	mainText: string;
 	secondaryText: string;
@@ -53,7 +47,7 @@ interface MockPrediction {
 // 100 mock addresses
 // ---------------------------------------------------------------------------
 
-const MOCK_ADDRESSES: MockAddress[] = [
+export const MOCK_ADDRESSES: MockAddress[] = [
 	{ id: "us-01", street: "1600 Amphitheatre Parkway", city: "Mountain View", country: "United States", postalCode: "94043", region: "California" },
 	{ id: "us-02", street: "1 Infinite Loop", city: "Cupertino", country: "United States", postalCode: "95014", region: "California" },
 	{ id: "us-03", street: "350 Fifth Avenue", city: "New York", country: "United States", postalCode: "10118", region: "New York" },
@@ -151,7 +145,11 @@ const MOCK_ADDRESSES: MockAddress[] = [
 	{ id: "nl-05", street: "Buitenhof 34", city: "Den Haag", country: "Netherlands", postalCode: "2513 AH", region: "Zuid-Holland" },
 ];
 
-function addressToPrediction(addr: MockAddress): MockPrediction {
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
+
+export function addressToPrediction(addr: MockAddress): MockPrediction {
 	return {
 		placeId: addr.id,
 		mainText: addr.street,
@@ -170,7 +168,7 @@ function addressToPrediction(addr: MockAddress): MockPrediction {
 	};
 }
 
-function filterAddresses(query: string): MockPrediction[] {
+export function filterAddresses(query: string): MockPrediction[] {
 	if (!query || query.length < 2) return [];
 	const lower = query.toLowerCase();
 	return MOCK_ADDRESSES.filter(
@@ -197,21 +195,23 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Mock Autocomplete
+// DemoAutocomplete component
 // ---------------------------------------------------------------------------
 
-interface DemoAutocompleteProps
+export interface DemoAutocompleteProps
 	extends Omit<React.ComponentProps<"input">, "onChange" | "value"> {
 	onPlaceSelect?: (details: MockPlaceDetails) => void;
 	onChange?: (value: string) => void;
 	value?: string;
+	output?: "routeOnly" | "formatted";
 }
 
-function DemoAutocomplete({
+export function DemoAutocomplete({
 	className,
 	onPlaceSelect,
 	onChange,
 	value = "",
+	output = "routeOnly",
 	onFocus,
 	onBlur,
 	disabled,
@@ -243,9 +243,15 @@ function DemoAutocomplete({
 	const handleSelect = (prediction: MockPrediction) => {
 		setIsOpen(false);
 		setHighlightedIndex(-1);
-		setInputValue(prediction.mainText);
-		onPlaceSelect?.(prediction.details);
-		onChange?.(prediction.mainText);
+
+		const details = prediction.details;
+		const formatted = output === "routeOnly"
+			? `${details.route ?? ""} ${details.streetNumber ?? ""}`.trim()
+			: details.formattedAddress;
+
+		setInputValue(formatted);
+		onPlaceSelect?.(details);
+		onChange?.(formatted);
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -293,511 +299,14 @@ function DemoAutocomplete({
 					</div>
 					<div className="mt-1 flex items-center justify-between px-1">
 						<span className="text-[10px] text-muted-foreground">Demo &middot; mock data</span>
-						<div className="flex items-center gap-1 px-1">
+						<div className="flex items-center gap-1">
 							<span className="text-[10px] text-muted-foreground">Powered by</span>
-							<GoogleIcon className="w-12 h-6" />
+							<GoogleIcon className="h-6 w-12" />
 						</div>
 					</div>
 				</PopoverContent>
 			)}
 		</Popover>
-	);
-}
-
-// ---------------------------------------------------------------------------
-// Demo 1: Shadcn integrated (react-hook-form + zod)
-// ---------------------------------------------------------------------------
-
-const addressSchema = z.object({
-	street: z.string().min(5, "Street must be at least 5 characters.").max(100, "Street must be at most 100 characters."),
-	city: z.string().min(2, "City must be at least 2 characters.").max(32, "City must be at most 32 characters."),
-	country: z.string().min(2, "Country must be at least 2 characters.").max(32, "Country must be at most 32 characters."),
-	postalCode: z.string().min(3, "Postal code must be at least 3 characters.").max(12, "Postal code must be at most 12 characters."),
-});
-
-function IntegratedDemo() {
-	const form = useForm<z.infer<typeof addressSchema>>({
-		resolver: zodResolver(addressSchema),
-		defaultValues: { street: "", city: "", country: "", postalCode: "" },
-		mode: "onChange",
-	});
-
-	const handlePlaceSelect = (place: MockPlaceDetails) => {
-		form.setValue("city", place.city ?? "");
-		form.setValue("country", place.country ?? "");
-		form.setValue("postalCode", place.postalCode ?? "");
-		form.trigger();
-	};
-
-	return (
-		<form onSubmit={form.handleSubmit(() => {})} className="w-full space-y-4">
-			<Controller control={form.control} name="street"
-				render={({ field, fieldState }) => (
-					<Field data-invalid={fieldState.invalid || undefined}>
-						<FieldLabel>Street*</FieldLabel>
-						<DemoAutocomplete onPlaceSelect={handlePlaceSelect} placeholder="Type an address..." {...field} />
-						{fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-					</Field>
-				)}
-			/>
-			<p className="text-xs text-muted-foreground italic">*For this demo, data are mocked. No data are obtained from the Google Maps API. The "powered by google" logo is only for final demonstration purposes.</p>
-			<div className="flex flex-col gap-3 sm:flex-row">
-				<Controller control={form.control} name="city" render={({ field }) => (<Field><FieldLabel>City</FieldLabel><Input readOnly placeholder="Auto-filled" {...field} /></Field>)} />
-				<Controller control={form.control} name="country" render={({ field }) => (<Field><FieldLabel>Country</FieldLabel><Input readOnly placeholder="Auto-filled" {...field} /></Field>)} />
-				<Controller control={form.control} name="postalCode" render={({ field }) => (<Field><FieldLabel>Postal Code</FieldLabel><Input readOnly placeholder="Auto-filled" {...field} /></Field>)} />
-			</div>
-			<Button type="submit" disabled={!form.formState.isValid} className="w-full">Submit</Button>
-		</form>
-	);
-}
-
-// ---------------------------------------------------------------------------
-// Demo 2: Custom component (simple usage)
-// ---------------------------------------------------------------------------
-
-function ShadcnWithYourUIDemo() {
-	const [query, setQuery] = React.useState("");
-	const [places, setPlaces] = React.useState<MockPrediction[]>([]);
-	const [selected, setSelected] = React.useState<MockPlaceDetails | null>(null);
-
-	const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const val = e.target.value;
-		setQuery(val);
-		setPlaces(filterAddresses(val));
-		setSelected(null);
-	};
-
-	const handlePlaceClick = (place: MockPrediction) => {
-		setQuery(place.mainText);
-		setSelected(place.details);
-		setPlaces([]);
-	};
-
-	return (
-		<form onSubmit={(e) => e.preventDefault()} className="w-full space-y-4 pb-20">
-			<Field>
-				<FieldLabel>Street</FieldLabel>
-				<div className="relative">
-					<Input
-						placeholder="My Custom Street Input"
-						value={query}
-						onChange={handleInput}
-						autoComplete="off"
-					/>
-					{places.length > 0 && (
-						<Card className="absolute top-[calc(100%+4px)] left-0 z-10 flex w-full flex-col gap-0.5">
-							<span className="text-muted-foreground px-2">Places:</span>
-							{places.map((place) => (
-								<button
-									key={place.placeId}
-									type="button"
-									className="flex border-l-4 border-transparent hover:border-primary transition-all w-full items-center justify-start gap-2 px-2 py-1"
-									onClick={() => handlePlaceClick(place)}
-								>
-									<Rocket className="size-4 shrink-0" />
-									<p className="truncate text-sm">{place.mainText}</p>
-									<span className="text-muted-foreground truncate text-xs">{place.secondaryText}</span>
-								</button>
-							))}
-						</Card>
-					)}
-				</div>
-			</Field>
-			<p className="text-muted-foreground text-xs italic">*For this demo, data are mocked. No data are obtained from the Google Maps API.</p>
-			{selected && (
-				<Card>
-					<CardContent>
-						{Object.keys(selected).map((key) => (
-							<div key={key}>
-								<span className="text-xs text-muted-foreground"><b>{key}</b>: {selected[key as keyof MockPlaceDetails]}</span>
-							</div>
-						))}
-					</CardContent>
-				</Card>
-			)}
-		</form>
-	);
-}
-
-// ---------------------------------------------------------------------------
-// Demo 3: Hook-only (no Autocomplete component)
-// ---------------------------------------------------------------------------
-
-function HookDemo() {
-	const [query, setQuery] = React.useState("");
-	const [results, setResults] = React.useState<MockPrediction[]>([]);
-	const [selected, setSelected] = React.useState<MockPlaceDetails | null>(null);
-
-	const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const val = e.target.value;
-		setQuery(val);
-		setResults(filterAddresses(val));
-	};
-
-	return (
-		<div className="space-y-3 w-full">
-			<Field>
-				<FieldLabel>Raw hook input</FieldLabel>
-				<input 
-					value={query} 
-					onChange={handleInput} 
-					placeholder="My custom input..." 
-					className="w-full border-2 border-blue-800 p-2 rounded-md"
-				/>
-			</Field>
-			<p className="text-xs text-muted-foreground italic">*For this demo, data are mocked. No data are obtained from the Google Maps API.</p>
-			{results.length > 0 && (
-				<ul className="space-y-1 rounded-md border p-1 absolute z-20 bg-background">
-					{results.map((r) => (
-						<li key={r.placeId}>
-							<button
-								type="button"
-								onClick={() => { setSelected(r.details); setQuery(r.mainText); setResults([]); }}
-								className="text-foreground hover:bg-accent flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm transition-colors"
-							>
-								<span>{r.mainText}</span>
-								<span className="text-muted-foreground text-xs">{r.secondaryText}</span>
-							</button>
-						</li>
-					))}
-					<li className="text-xs p-2 text-blue-800">Custom dropdown</li>
-				</ul>
-			)}
-			{selected && (
-				<Card>
-					<CardContent>
-						{Object.keys(selected).map((key) => (
-							<div key={key}>
-								<span className="text-xs text-muted-foreground"><b>{key}</b>: {selected[key as keyof MockPlaceDetails]}</span>
-							</div>
-						))}
-					</CardContent>
-				</Card>
-			)}
-		</div>
-	);
-}
-
-// ---------------------------------------------------------------------------
-// Code strings (real usage, not mock)
-// ---------------------------------------------------------------------------
-
-const INTEGRATED_CODE = `const schema = z.object({
-  street: z.string().min(5).max(100),
-  city: z.string().min(2),
-  country: z.string().min(2),
-  postalCode: z.string().min(3),
-});
-
-
-export function AutocompleteForm() {
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: { street: "", city: "", country: "", postalCode: "" },
-    mode: "onChange",
-  });
-
-  const handlePlaceSelect = (place: PlaceDetails) => {
-    form.setValue("city", place.city ?? "");
-    form.setValue("country", place.country ?? "");
-    form.setValue("postalCode", place.postalCode ?? "");
-    form.trigger();
-  };
-
-  return (
-    <form onSubmit={form.handleSubmit(console.log)}>
-      <Controller
-        control={form.control}
-        name="street"
-        render={({ field }) => (
-          <Autocomplete
-            apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-            onPlaceSelect={handlePlaceSelect}
-            placeholder="Street"
-			setupOptions={{ language: ["en"] }}
-			requestOptions={{ includedPrimaryTypes: ["route"] }}
-			{...field}
-          />
-        )}
-      />
-
-      ...
-	  
-    </form>
-  );
-}`;
-
-const COMPONENT_CODE = `const schema = z.object({
-  street: z.string().min(5).max(100),
-  city: z.string().min(2),
-  country: z.string().min(2),
-  postalCode: z.string().min(3),
-});
-
-
-export function AutocompleteForm() {
-
-   const { 
-	isLoaded, 
-	places, 
-	autocomplete,
-	getDetails
-  } = useAutocomplete(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!);
-
-  const form = useForm<z.infer<typeof schema>>({
-    resolver: zodResolver(schema),
-    defaultValues: { street: "", city: "", country: "", postalCode: "" },
-    mode: "onChange",
-  });
-
-  const handlePlaceSelect = (place: PlaceDetails) => {
-    form.setValue("city", place.city ?? "");
-    form.setValue("country", place.country ?? "");
-    form.setValue("postalCode", place.postalCode ?? "");
-    form.trigger();
-  };
-
-  return (
-    <form onSubmit={form.handleSubmit(console.log)}>
-		<Controller
-		control={form.control}
-		name="street"
-		render={({ field, fieldState }) => (
-			<Field data-invalid={fieldState.invalid}>
-				<FieldLabel>Street</FieldLabel>
-				<div className="relative">
-					<Input disabled={!isLoaded} placeholder="Street" {...autocomplete(field, { includedPrimaryTypes: ['route'] })} />
-					{(places && places.length > 0) && (
-						<Card className="w-full top-[115%] flex flex-col gap-2 absolute z-10 p-0">
-							{places.map((place) => (
-								<Button key={place.placeId} variant="ghost" className="flex items-center justify-start gap-2 py-1 px-2 w-full" onClick={() => handlePlaceSelect(place)}>
-								<MapPinIcon className="size-4" />
-									<p className="text-sm truncate">{place.text.text}</p>
-								</Button>
-							))}
-						</Card>
-					)}
-				</div>
-				{fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-			</Field>
-		)}
-		/>
-
-      ...
-	  
-    </form>
-  );
-}`;
-
-const HOOK_CODE = `import { useAutocomplete } from "@/hooks/use-autocomplete";
-
-export function CustomSearch() {
-  const { 
-  	isLoaded, 
-	getPlaceDetails, 
-	places,
-	autocomplete
-  } = useAutocomplete(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!, { 
-   language: ["en"], 
-   debounceMs: 500,
-   includedPrimaryTypes: ["route"]
-  });
-
-  return (
-    <div>
-      <input
-        type="text"
-        disabled={!isLoaded}
-        placeholder="Type an address..."
-        {...autocomplete({ placeholder: "Type an address..." })}
-      />
-      <ul>
-        {places?.map((place) => (
-          <li key={place.placeId}>
-            <button
-              onClick={async () => {
-                const details = await getPlaceDetails(place);
-                console.log(details);
-              }}
-            >
-              {place.mainText?.text}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}`;
-
-// ---------------------------------------------------------------------------
-// Shiki client-side highlighting
-// ---------------------------------------------------------------------------
-
-function useHighlightedCode(codes: string[]) {
-	const [htmlMap, setHtmlMap] = React.useState<Record<number, string>>({});
-
-	React.useEffect(() => {
-		let cancelled = false;
-
-		async function highlight() {
-			const results: Record<number, string> = {};
-
-			for (let i = 0; i < codes.length; i++) {
-				results[i] = await codeToHtml(codes[i], {
-					lang: "tsx",
-					themes: { light: "github-light", dark: "github-dark" },
-				});
-			}
-
-			if (!cancelled) setHtmlMap(results);
-		}
-
-		highlight();
-		return () => { cancelled = true; };
-	}, [codes]);
-
-	return htmlMap;
-}
-
-// ---------------------------------------------------------------------------
-// Showcase items config
-// ---------------------------------------------------------------------------
-
-interface ShowcaseItem {
-	id: number;
-	title: string;
-	subtitle: string;
-	code: string;
-	preview: React.ComponentType;
-}
-
-const SHOWCASE_ITEMS: ShowcaseItem[] = [
-	{
-		id: 0,
-		title: "Full Shadcn Form",
-		subtitle: "Autocomplete with react-hook-form, zod and auto-filled fields",
-		code: INTEGRATED_CODE,
-		preview: IntegratedDemo,
-	},
-	{
-		id: 1,
-		title: "Shadcn Form + Your UI",
-		subtitle: "useAutocomplete hook seamlessly integrated with your own UI",
-		code: COMPONENT_CODE,
-		preview: ShadcnWithYourUIDemo,
-	},
-	{
-		id: 2,
-		title: "No integration",
-		subtitle: "Direct hook usage for complete UI control",
-		code: HOOK_CODE,
-		preview: HookDemo,
-	},
-];
-
-// ---------------------------------------------------------------------------
-// Main showcase export
-// ---------------------------------------------------------------------------
-
-export function HomepageDemo() {
-	const [selectedId, setSelectedId] = React.useState(0);
-	const [tab, setTab] = React.useState<"preview" | "code">("preview");
-	const codes = React.useMemo(() => SHOWCASE_ITEMS.map((i) => i.code), []);
-	const highlighted = useHighlightedCode(codes);
-
-	const current = SHOWCASE_ITEMS[selectedId];
-	const PreviewComponent = current.preview;
-
-	return (
-		<div className="flex flex-col gap-6 lg:flex-row lg:gap-0">
-			{/* Left: Drilldown selector */}
-			<div className="flex shrink-0 flex-row gap-2 lg:w-1/3 lg:flex-col lg:gap-1 lg:pr-6">
-				{SHOWCASE_ITEMS.map((item) => {
-					const isActive = item.id === selectedId;
-					return (
-						<button
-							key={item.id}
-							type="button"
-							onClick={() => { setSelectedId(item.id); setTab("preview"); }}
-							className={cn(
-								"group flex flex-1 cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors lg:flex-initial",
-								isActive
-									? "bg-accent"
-									: "hover:bg-accent/50"
-							)}
-						>
-							<div className="min-w-0 flex-1">
-								<p className={cn("text-sm font-medium", isActive ? "text-foreground" : "text-foreground/80")}>
-									{item.title}
-								</p>
-								<p className="text-muted-foreground mt-0.5 hidden text-xs leading-snug lg:block">
-									{item.subtitle}
-								</p>
-							</div>
-							<ArrowRight
-								className={cn(
-									"size-4 shrink-0 transition-all duration-200",
-									isActive
-										? "text-foreground translate-x-0 opacity-100"
-										: "text-muted-foreground -translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
-								)}
-							/>
-						</button>
-					);
-				})}
-			</div>
-
-			{/* Right: Content box */}
-			<div className="flex min-w-0 flex-col overflow-hidden rounded-xl border lg:w-2/3">
-				{/* Tab bar */}
-				<div className="flex border-b bg-muted/30">
-					<button
-						type="button"
-						onClick={() => setTab("preview")}
-						className={cn(
-							"px-4 py-2.5 text-sm font-medium transition-colors flex items-center gap-2",
-							tab === "preview"
-								? "text-foreground border-b-2 border-foreground"
-								: "text-muted-foreground hover:text-foreground"
-						)}
-					>
-						<Eye className="size-4" />
-						Preview
-					</button>
-					<button
-						type="button"
-						onClick={() => setTab("code")}
-						className={cn(
-							"px-4 py-2.5 text-sm font-medium transition-colors flex items-center gap-2",
-							tab === "code"
-								? "text-foreground border-b-2 border-foreground"
-								: "text-muted-foreground hover:text-foreground"
-						)}
-					>
-						<Code className="size-4" />
-						Code
-					</button>
-				</div>
-
-				{/* Content */}
-				<div className="flex-1 overflow-auto min-h-[400px]">
-					{tab === "preview" ? (
-						<div className="p-6 max-w-xl mx-auto h-full flex items-center justify-center">
-							<PreviewComponent key={selectedId} />
-						</div>
-					) : (
-						<div className="overflow-auto bg-muted/20 p-4 text-sm [&_pre]:bg-transparent! [&_code]:bg-transparent!">
-							{highlighted[selectedId] ? (
-								<div dangerouslySetInnerHTML={{ __html: highlighted[selectedId] }} />
-							) : (
-								<pre className="text-muted-foreground text-xs">{current.code}</pre>
-							)}
-						</div>
-					)}
-				</div>
-			</div>
-		</div>
 	);
 }
 
