@@ -65,23 +65,16 @@ const autocompleteProps = [
 			"Your Google Maps API key with the Places API (New) enabled.",
 	},
 	{
-		name: "setupOptions",
+		name: "options",
 		type: "UseAutocompleteOptions",
 		description:
 			"Options passed during Google Maps API setup (language, region, libraries, etc.).",
 	},
 	{
-		name: "requestOptions",
-		type: "RequestOptions",
+		name: "fetchParams",
+		type: "FetchParams",
 		description:
-			"Options passed to every autocomplete suggestion request (e.g. includedPrimaryTypes, locationBias).",
-	},
-	{
-		name: "output",
-		type: '"routeOnly" | "formatted"',
-		default: '"routeOnly"',
-		description:
-			'Controls the value written to the input after a place is selected. "routeOnly" shows street name and number (e.g. "123 Main St"), "formatted" shows the full address.',
+			"Parameters passed to every autocomplete suggestion request (e.g. includedPrimaryTypes, locationBias).",
 	},
 	{
 		name: "onPlaceSelect",
@@ -111,7 +104,7 @@ const hookParams = [
 		description: "Your Google Maps API key with the Places API (New) enabled.",
 	},
 	{
-		name: "apiOptions",
+		name: "options",
 		type: "UseAutocompleteOptions",
 		description:
 			"Optional configuration for the Google Maps API loader and autocomplete behavior.",
@@ -130,7 +123,13 @@ const hookOptions = [
 		name: "sessionToken",
 		type: "AutocompleteSessionToken",
 		description:
-			"An external session token. If not provided, one is created and managed automatically.",
+			"When provided, the hook enters controlled mode: it uses this token directly and never creates or rotates tokens internally. Pair with onSessionEnd to know when to supply a fresh token. When omitted, the hook manages the token lifecycle automatically (uncontrolled mode).",
+	},
+	{
+		name: "onSessionEnd",
+		type: "() => void",
+		description:
+			"Called when a session ends (place selected or input cleared). Only relevant in controlled mode — use it to rotate the sessionToken you pass in.",
 	},
 	{
 		name: "...loaderOptions",
@@ -166,7 +165,7 @@ const hookReturn = [
 	},
 	{
 		name: "getSuggestions",
-		type: "(input: string, requestOptions?: RequestOptions) => void",
+		type: "(input: string, FetchParams?: FetchParams) => void",
 		description:
 			"Fetches autocomplete suggestions for the given input string. Automatically debounced.",
 	},
@@ -174,11 +173,11 @@ const hookReturn = [
 		name: "getPlaceDetails",
 		type: "(prediction: PlacePrediction) => Promise<PlaceDetails>",
 		description:
-			"Fetches full place details for a prediction. Refreshes the session token after each call to keep API costs efficient.",
+			"Fetches full place details for a prediction. Ends the current session after each call — in uncontrolled mode this rotates the token automatically; in controlled mode it fires onSessionEnd.",
 	},
 	{
 		name: "autocomplete",
-		type: "<T>(field: T, requestOptions?) => T & { onChange }",
+		type: "<T>(field: T, FetchParams?) => T & { onChange }",
 		description:
 			"Spread helper for react-hook-form. Wraps a field's onChange to trigger getSuggestions automatically.",
 	},
@@ -246,7 +245,7 @@ const placeDetailsFields = [
 	},
 ];
 
-const requestOptionsFields = [
+const FetchParamsFields = [
 	{
 		name: "includedPrimaryTypes",
 		type: "string[]",
@@ -326,7 +325,7 @@ export default function ApiReferencePage() {
 				{ title: "UseAutocompleteOptions", slug: "useautocompleteoptions" },
 				{ title: "Return Value", slug: "return-value" },
 				{ title: "PlaceDetails", slug: "placedetails" },
-				{ title: "RequestOptions", slug: "requestoptions" },
+				{ title: "FetchParams", slug: "FetchParams" },
 				{ title: "getSuggestions()", slug: "getsuggestions" },
 				{ title: "getPlaceDetails()", slug: "getplacedetails" },
 				{ title: "autocomplete()", slug: "autocomplete-1" },
@@ -365,8 +364,15 @@ export default function ApiReferencePage() {
 				</p>
 
 				<CodeBlock
-					code={`const { isLoaded, isStale, error, places, getSuggestions, getPlaceDetails, autocomplete } =
-  useAutocomplete(apiKey, options);`}
+					code={`const { 
+	isLoaded, 
+	isStale, 
+	error, 
+	places, 
+	getSuggestions, 
+	getPlaceDetails, 
+	autocomplete 
+} = useAutocomplete(apiKey, options);`}
 				/>
 
 				<h3 className="text-foreground text-base font-semibold">Parameters</h3>
@@ -381,8 +387,21 @@ export default function ApiReferencePage() {
 				<p>
 					Configuration object passed as the second argument to{" "}
 					<DocsCode>useAutocomplete</DocsCode>. Extends the{" "}
-					<DocsCode>@googlemaps/js-api-loader</DocsCode> options.
+					<DocsCode>@googlemaps/js-api-loader</DocsCode> options. Supports two
+					session token modes:
 				</p>
+				<ul>
+					<li>
+						<strong>Uncontrolled</strong> (default) — the hook creates and
+						rotates session tokens internally. No extra work required.
+					</li>
+					<li>
+						<strong>Controlled</strong> — pass your own{" "}
+						<DocsCode>sessionToken</DocsCode> and listen to{" "}
+						<DocsCode>onSessionEnd</DocsCode> to supply a fresh one when a
+						session ends.
+					</li>
+				</ul>
 				<PropTable items={hookOptions} />
 			</DocsSection>
 
@@ -412,15 +431,15 @@ export default function ApiReferencePage() {
 			</DocsSection>
 
 			{/* ------------------------------------------------------------ */}
-			{/* RequestOptions                                                */}
+			{/* FetchParams                                                */}
 			{/* ------------------------------------------------------------ */}
 
-			<DocsSection title="RequestOptions">
+			<DocsSection title="FetchParams">
 				<p>
-					Options passed to each suggestion fetch request. It accepts {" "}, so basically:
+					Options passed to each suggestion fetch request. It accepts:
 					<DocsCode>{"Omit<google.maps.places.AutocompleteRequest, 'input' | 'sessionToken'>"}</DocsCode>.
 				</p>
-				<PropTable items={requestOptionsFields} />
+				<PropTable items={FetchParamsFields} />
 			</DocsSection>
 
 			{/* ------------------------------------------------------------ */}
@@ -430,12 +449,14 @@ export default function ApiReferencePage() {
 			<DocsSection title="getSuggestions()">
 				<p>
 					Fetches autocomplete suggestions for the given input string. Results
-					are stored in <DocsCode>places</DocsCode>. It accepts <DocsCode>RequestOptions</DocsCode> as the second argument.
+					are stored in <DocsCode>places</DocsCode>. It accepts <DocsCode>FetchParams</DocsCode> as the second argument.
 				</p>
 				<CodeBlock code={getSuggestionsCode} />
 				<DocsNote>
-					Passing an empty string clears the current suggestions and refreshes
-					the session token.
+					Passing an empty string clears the current suggestions and ends the
+					session — in uncontrolled mode the token is rotated automatically; in
+					controlled mode <DocsCode>onSessionEnd</DocsCode> is fired so you can
+					supply a fresh token.
 				</DocsNote>
 			</DocsSection>
 
@@ -451,9 +472,11 @@ export default function ApiReferencePage() {
 				</p>
 				<CodeBlock code={getPlaceDetailsCode} />
 				<DocsNote>
-					After each call, the session token is automatically refreshed and the
-					suggestions list is cleared. This keeps Google Maps API billing efficient
-					by bundling autocomplete requests into sessions.
+					After each call, the current session ends and the suggestions list is
+					cleared. In uncontrolled mode the token is rotated automatically; in
+					controlled mode <DocsCode>onSessionEnd</DocsCode> is fired. This keeps
+					Google Maps API billing efficient by bundling autocomplete requests into
+					sessions.
 				</DocsNote>
 			</DocsSection>
 
@@ -464,7 +487,7 @@ export default function ApiReferencePage() {
 			<DocsSection title="autocomplete()">
 				<p>
 					A spread helper designed for <DocsCode>react-hook-form</DocsCode>{" "}
-					integration. It takes the <DocsCode>field</DocsCode> object to
+					integration with your custom UI. It takes the <DocsCode>field</DocsCode> object to
 					trigger <DocsCode>getSuggestions</DocsCode> automatically while
 					preserving the original handler.
 				</p>

@@ -4,7 +4,7 @@ import { type ChangeEvent, useState, useRef, useCallback, useEffect } from 'reac
 import { setOptions, importLibrary, type APIOptions } from '@googlemaps/js-api-loader';
 
 type PlacePrediction = google.maps.places.PlacePrediction;
-type RequestOptions = Omit<google.maps.places.AutocompleteRequest, 'input' | 'sessionToken'>;
+type FetchParams = Omit<google.maps.places.AutocompleteRequest, 'input' | 'sessionToken'>;
 
 
 type PlaceDetails = {
@@ -25,16 +25,28 @@ type UseAutocompleteReturn = {
     isLoaded: boolean;
     isStale: boolean;
     error: Error | null;
-    getSuggestions: (input: string, requestOptions?: RequestOptions) => void;
+    getSuggestions: (input: string, fetchParams?: FetchParams) => void;
     getPlaceDetails: (prediction: PlacePrediction) => Promise<PlaceDetails>;
-    autocomplete: <T extends React.ComponentProps<"input">>(field: T, requestOptions?: RequestOptions) => T
+    autocomplete: <T extends React.ComponentProps<"input">>(field: T, fetchParams?: FetchParams) => T
     places: PlacePrediction[] | undefined;
 };
 
 let apiInitialized = false;
 
 type UseAutocompleteOptions = Omit<APIOptions, 'key'> & {
+    /**
+     * When provided, the hook enters **controlled mode**: it uses this token
+     * directly and never creates or rotates tokens internally.
+     * Pair with `onSessionEnd` to know when to supply a fresh token.
+     *
+     * When omitted, the hook manages the token lifecycle internally (uncontrolled mode).
+     */
     sessionToken?: google.maps.places.AutocompleteSessionToken;
+    /**
+     * Called when a session ends (place selected or input cleared).
+     * Only relevant in controlled mode — use it to rotate `sessionToken`.
+     */
+    onSessionEnd?: () => void;
     /**
      * The debounce time in milliseconds to wait before fetching suggestions.
      * 
@@ -47,9 +59,10 @@ type UseAutocompleteOptions = Omit<APIOptions, 'key'> & {
 
 const useAutocomplete = (
     apiKey: string,
-    apiOptions?: UseAutocompleteOptions
+    options?: UseAutocompleteOptions
 ): UseAutocompleteReturn => {
-    const { sessionToken: externalToken, debounceMs = 200, ...loaderOptions } = apiOptions ?? {};
+    const { sessionToken: externalToken, onSessionEnd, debounceMs = 200, ...loaderOptions } = options || {};
+    const isControlled = externalToken != null;
 
     const [isLoaded, setIsLoaded] = useState(false);
     const [isStale, setIsStale] = useState(false);
@@ -60,8 +73,24 @@ const useAutocomplete = (
         externalToken ?? null
     );
     const loaderOptionsRef = useRef(loaderOptions);
+    const onSessionEndRef = useRef(onSessionEnd);
+    onSessionEndRef.current = onSessionEnd;
     const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
     const requestIdRef = useRef(0);
+
+    useEffect(() => {
+        if (isControlled) {
+            sessionTokenRef.current = externalToken;
+        }
+    }, [isControlled, externalToken]);
+
+    const rotateToken = useCallback(() => {
+        if (isControlled) {
+            onSessionEndRef.current?.();
+        } else {
+            sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
+        }
+    }, [isControlled]);
 
     useEffect(() => {
         let cancelled = false;
@@ -72,8 +101,10 @@ const useAutocomplete = (
         }
 
         importLibrary('places').then((placesLib) => {
-            if (cancelled) return;
-            if (!sessionTokenRef.current) {
+            if (cancelled) {
+                return;
+            };
+            if (!isControlled && !sessionTokenRef.current) {
                 sessionTokenRef.current = new placesLib.AutocompleteSessionToken();
             }
             setIsLoaded(true);
@@ -86,20 +117,20 @@ const useAutocomplete = (
         return () => clearTimeout(debounceRef.current);
     }, []);
 
-    const getSuggestions = useCallback((input: string, requestOptions?: RequestOptions) => {
+    const getSuggestions = useCallback((input: string, fetchParams?: FetchParams) => {
         clearTimeout(debounceRef.current);
         setError(null);
 
         if (!input) {
             setPlaces([]);
             setIsStale(false);
-            if (sessionTokenRef.current) {
-                sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
-            }
+            rotateToken();
             return;
         }
 
-        if (!sessionTokenRef.current) return;
+        if (!sessionTokenRef.current) {
+            return;
+        };
 
         setIsStale(true);
 
@@ -108,12 +139,14 @@ const useAutocomplete = (
 
             google.maps.places.AutocompleteSuggestion
                 .fetchAutocompleteSuggestions({
-                    ...requestOptions,
+                    ...fetchParams,
                     input,
-                    sessionToken: sessionTokenRef.current!,
+                    sessionToken: sessionTokenRef.current ?? undefined,
                 })
                 .then(({ suggestions }) => {
-                    if (currentRequestId !== requestIdRef.current) return;
+                    if (currentRequestId !== requestIdRef.current) {
+                        return;
+                    };
 
                     setPlaces(
                         suggestions
@@ -123,7 +156,9 @@ const useAutocomplete = (
                     setIsStale(false);
                 })
                 .catch((err: unknown) => {
-                    if (currentRequestId !== requestIdRef.current) return;
+                    if (currentRequestId !== requestIdRef.current) {
+                        return;
+                    };
                     setError(err instanceof Error ? err : new Error(String(err)));
                     setPlaces([]);
                     setIsStale(false);
@@ -135,7 +170,7 @@ const useAutocomplete = (
         } else {
             fetchSuggestions();
         }
-    }, [debounceMs]);
+    }, [debounceMs, rotateToken]);
 
     const getPlaceDetails = useCallback(async (prediction: PlacePrediction): Promise<PlaceDetails> => {
         const place = prediction.toPlace();
@@ -160,25 +195,18 @@ const useAutocomplete = (
             place,
         };
 
-        sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
+        rotateToken();
         setPlaces(undefined);
 
         return details;
-    }, []);
+    }, [rotateToken]);
 
     const autocomplete = useCallback(
-        <T extends React.ComponentProps<"input">>(field: T, requestOptions?: RequestOptions) => ({
+        <T extends React.ComponentProps<"input">>(field: T, fetchParams?: FetchParams) => ({
             ...field,
-            onChange: (e: ChangeEvent<HTMLInputElement> | string): void => {
-                // This check is to prevent the suggestions from being called 
-                // when the value is set programmatically by the onChange handler
-                // We still need to emit the string value otherwise the form will not be updated
-                if (typeof e === 'string') {
-                    field.onChange?.({ target: { value: e } } as ChangeEvent<HTMLInputElement>);
-                    return;
-                }
+            onChange: (e: ChangeEvent<HTMLInputElement>): void => {
                 field.onChange?.(e);
-                getSuggestions(e.target.value, requestOptions);
+                getSuggestions(e.target.value, fetchParams);
             },
         }),
         [getSuggestions]
@@ -188,4 +216,4 @@ const useAutocomplete = (
 };
 
 export { useAutocomplete };
-export type { UseAutocompleteReturn, UseAutocompleteOptions, RequestOptions, PlacePrediction, PlaceDetails };
+export type { UseAutocompleteReturn, UseAutocompleteOptions, FetchParams, PlacePrediction, PlaceDetails };

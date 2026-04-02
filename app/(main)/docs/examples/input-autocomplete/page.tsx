@@ -9,9 +9,7 @@ export const metadata: Metadata = {
 
 const exampleCode = `"use client";
 
-import { useState } from "react";
 import { Autocomplete } from "@/components/ui/autocomplete";
-import type { PlaceDetails } from "@/hooks/use-autocomplete";
 
 export function InputAutocomplete() {
 
@@ -19,12 +17,8 @@ export function InputAutocomplete() {
     <Autocomplete
 		apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
 		placeholder="Type to search..."
-		output="formatted"
-		setupOptions={{ 
-			language: 'en', 
-			libraries: ['places'],
-			debounceMs: 350,
-		}}
+		options={{ language: "en", debounceMs: 350 }}
+		fetchParams={{ includedPrimaryTypes: ["route"] }}
 	/>
   );
 }`;
@@ -33,7 +27,7 @@ export default function InputAutocompletePage() {
 	return (
 		<DocsLayout
 			title="Input Autocomplete"
-			description="Single input Autocomplete with formatted address output."
+			description="Single input Autocomplete for quick address search."
 			prev={{
 				title: "Auto-fill Form",
 				href: "/docs/examples/autofill-form",
@@ -51,7 +45,7 @@ export default function InputAutocompletePage() {
 			</DocsSection>
 
 			<DocsSection title="How it works">
-				When a place is selected, <strong>onPlaceSelect</strong> fires, and because the <strong>output</strong> is set to <code className="rounded bg-muted px-1.5 py-0.5 text-sm">"formatted"</code>, the input value is automatically set to the formatted address.
+				When a place is selected, <strong>onPlaceSelect</strong> fires with the full place details. The component handles displaying the selected address in the input automatically.
 			</DocsSection>
 		</DocsLayout>
 	);

@@ -32,11 +32,15 @@ export function AddressForm() {
 const hookUsageCode = `import { useAutocomplete } from "@/hooks/use-autocomplete";
 
 export function CustomAutocomplete() {
-  const { isLoaded, getSuggestions, getPlaceDetails, places } =
-    useAutocomplete(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!);
+  const { 
+	isLoaded, 
+	getSuggestions, 
+	getPlaceDetails, 
+	places,
+  } = useAutocomplete(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!);
 
   const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    getSuggestions(e.target.value);
+    getSuggestions(e.target.value, { includedPrimaryTypes: ["route"] });
   };
 
   const handleSelect = async (prediction: google.maps.places.PlacePrediction) => {

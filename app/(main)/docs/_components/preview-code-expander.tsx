@@ -25,7 +25,7 @@ export function PreviewCodeExpander({
 				)}
 			>
 				<div className="relative">
-					{(!expanded && <CopyButton
+					{(expanded && <CopyButton
 						text={code}
 						className="absolute top-3 right-3 z-10"
 					/>)}
@@ -37,7 +37,7 @@ export function PreviewCodeExpander({
 			</div>
 
 			{!expanded && (
-				<div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
+				<div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-background to-transparent" />
 			)}
 
 			<div

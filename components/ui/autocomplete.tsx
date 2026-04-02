@@ -10,7 +10,7 @@ import { useAutocomplete } from '@/hooks/use-autocomplete';
 import type {
     PlaceDetails,
     PlacePrediction,
-    RequestOptions,
+    FetchParams,
     UseAutocompleteOptions
 } from '@/hooks/use-autocomplete';
 
@@ -18,7 +18,6 @@ import type {
 type AutocompleteContextValue = {
     listId: string;
     isOpen: boolean;
-    inputValue: string;
     highlightedIndex: number;
     isStale: boolean;
     places: PlacePrediction[] | undefined;
@@ -35,7 +34,9 @@ const AutocompleteContext = React.createContext<AutocompleteContextValue | null>
 
 function useAutocompleteContext() {
     const ctx = React.useContext(AutocompleteContext);
-    if (!ctx) throw new Error('Autocomplete compound components must be used within <Autocomplete>');
+    if (!ctx) {
+        throw new Error('Autocomplete compound components must be used within <Autocomplete>');
+    }
     return ctx;
 }
 
@@ -52,7 +53,6 @@ function AutocompleteInput({
                 <Input
                     data-slot="autocomplete-input"
                     className={className}
-                    value={ctx.inputValue}
                     onChange={ctx.handleChange}
                     onKeyDown={ctx.handleKeyDown}
                     onFocus={ctx.handleFocus}
@@ -118,7 +118,9 @@ function AutocompleteItem({
 function AutocompleteList() {
     const ctx = useAutocompleteContext();
 
-    if (!ctx.places?.length) return null;
+    if (!ctx.places?.length){
+        return null;
+    };
 
     return (
         <PopoverContent
@@ -155,7 +157,7 @@ function AutocompleteList() {
     );
 }
 
-type AutocompleteProps = Omit<React.ComponentProps<'input'>, 'onChange' | 'value'> & {
+type AutocompleteProps = React.ComponentProps<'input'> & {
     /**
      * The Google Maps API key to use.
      * 
@@ -163,17 +165,17 @@ type AutocompleteProps = Omit<React.ComponentProps<'input'>, 'onChange' | 'value
      */
     apiKey: string;
     /**
-     * The options to pass during Google Autocomplete API setup.
+     * The options passed on Google Autocomplete API setup.
      * 
      * @see UseAutocompleteOptions
      */
-    setupOptions?: UseAutocompleteOptions;
+    options?: UseAutocompleteOptions;
     /**
      * The options to pass to every suggestion fetch request.
      * 
-     * @see RequestOptions
+     * @see FetchParams
      */
-    requestOptions?: RequestOptions;
+    fetchParams?: FetchParams;
     /**
      * The output format to use for the selected place.
      * 
@@ -199,40 +201,32 @@ type AutocompleteProps = Omit<React.ComponentProps<'input'>, 'onChange' | 'value
      * @default 200
      */
     debounceMs?: number;
-    onChange?: (value: string) => void;
-    value?: string;
 };
 
 function Autocomplete({
     className,
     apiKey,
-    setupOptions,
-    requestOptions,
+    options,
+    fetchParams,
     output = 'routeOnly',
     onPlaceSelect,
     debounceMs,
     onChange,
-    value = '',
     onFocus,
     onBlur,
     disabled,
     ...props
 }: AutocompleteProps) {
     const { isLoaded, isStale, getSuggestions, getPlaceDetails, places } = useAutocomplete(apiKey, {
-        ...setupOptions,
+        ...options,
         debounceMs,
     });
 
-    const [inputValue, setInputValue] = React.useState(value);
     const [isOpen, setIsOpen] = React.useState(false);
     const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
 
     const anchorRef = React.useRef<HTMLDivElement>(null);
     const listId = React.useId();
-
-    React.useEffect(() => {
-        setInputValue(value);
-    }, [value]);
 
     React.useEffect(() => {
         if (places !== undefined) {
@@ -242,32 +236,29 @@ function Autocomplete({
     }, [places]);
 
     React.useEffect(() => {
-        if (highlightedIndex < 0) return;
+        if (highlightedIndex < 0) {
+            return
+        };
         document.getElementById(`${listId}-${highlightedIndex}`)
             ?.scrollIntoView({ block: 'nearest' });
     }, [highlightedIndex, listId]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setInputValue(val);
-        onChange?.(val);
-        getSuggestions(val, requestOptions);
+        onChange?.(e);
+        getSuggestions(e.target.value, fetchParams);
     };
 
     const handleSelect = async (prediction: PlacePrediction) => {
         setIsOpen(false);
         setHighlightedIndex(-1);
-
         const details = await getPlaceDetails(prediction);
-        const formatted = formatOutput(details, output);
-
-        setInputValue(formatted);
         onPlaceSelect?.(details);
-        onChange?.(formatted);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (!isOpen || !places?.length) return;
+        if (!isOpen || !places?.length) {
+            return
+        };
 
         switch (e.key) {
             case 'ArrowDown':
@@ -296,7 +287,7 @@ function Autocomplete({
     };
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-        if (inputValue && places?.length) {
+        if (props.value && places?.length) {
             setIsOpen(true);
         }
         onFocus?.(e);
@@ -309,7 +300,6 @@ function Autocomplete({
     const contextValue: AutocompleteContextValue = {
         listId,
         isOpen,
-        inputValue,
         highlightedIndex,
         isStale,
         places,
@@ -349,10 +339,14 @@ function Autocomplete({
 // ---------------------------------------------------------------------------
 
 function HighlightedText({ formattable }: { formattable: google.maps.places.FormattableText | null }) {
-    if (!formattable) return null;
+    if (!formattable){
+        return null;
+    };
 
     const { text, matches } = formattable;
-    if (!matches.length) return <>{text}</>;
+    if (!matches.length) {
+        return text;
+    }
 
     const segments: React.ReactNode[] = [];
     let cursor = 0;
@@ -388,13 +382,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-
-const formatOutput = (details: PlaceDetails, output: 'routeOnly' | 'formatted'): string => {
-    if (output === 'routeOnly') {
-        return `${details.route ?? ''} ${details.streetNumber ?? ''}`.trim();
-    }
-    return details.formattedAddress ?? '';
-};
 
 export { Autocomplete };
 export type { AutocompleteProps };

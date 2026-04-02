@@ -203,7 +203,6 @@ export interface DemoAutocompleteProps
 	onPlaceSelect?: (details: MockPlaceDetails) => void;
 	onChange?: (value: string) => void;
 	value?: string;
-	output?: "routeOnly" | "formatted";
 }
 
 export function DemoAutocomplete({
@@ -211,7 +210,6 @@ export function DemoAutocomplete({
 	onPlaceSelect,
 	onChange,
 	value = "",
-	output = "routeOnly",
 	onFocus,
 	onBlur,
 	disabled,
@@ -243,15 +241,9 @@ export function DemoAutocomplete({
 	const handleSelect = (prediction: MockPrediction) => {
 		setIsOpen(false);
 		setHighlightedIndex(-1);
-
-		const details = prediction.details;
-		const formatted = output === "routeOnly"
-			? `${details.route ?? ""} ${details.streetNumber ?? ""}`.trim()
-			: details.formattedAddress;
-
-		setInputValue(formatted);
-		onPlaceSelect?.(details);
-		onChange?.(formatted);
+		setInputValue(prediction.mainText);
+		onPlaceSelect?.(prediction.details);
+		onChange?.(prediction.mainText);
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

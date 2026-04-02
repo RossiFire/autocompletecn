@@ -10,7 +10,6 @@ export function InputAutocompleteDemo() {
 			<Field>
 				<FieldLabel>Search location</FieldLabel>
 				<DemoAutocomplete
-					output="formatted"
 					placeholder="Type to search..."
 				/>
 			</Field>

@@ -33,6 +33,7 @@ export function AutofillForm() {
   });
 
   const handlePlaceSelect = (place: PlaceDetails) => {
+    form.setValue("street", \`\${place.route} \${place.streetNumber}\` ?? "");
     form.setValue("city", place.city ?? "");
     form.setValue("country", place.country ?? "");
     form.setValue("postalCode", place.postalCode ?? "");
@@ -51,7 +52,7 @@ export function AutofillForm() {
               apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
               onPlaceSelect={handlePlaceSelect}
               placeholder="Type an address..."
-              requestOptions={{ includedPrimaryTypes: ["route"] }}
+              fetchParams={{ includedPrimaryTypes: ["route"] }}
               {...field}
             />
           )}

@@ -407,10 +407,8 @@ function ShadcnWithYourUIDemo() {
 			{selected && (
 				<Card>
 					<CardContent>
-						{Object.keys(selected).map((key) => (
-							<div key={key}>
-								<span className="text-xs text-muted-foreground"><b>{key}</b>: {selected[key as keyof MockPlaceDetails]}</span>
-							</div>
+						{Object.keys(selected).map((key) => selected[key as keyof MockPlaceDetails] && (
+							<p key={key} className="text-xs text-muted-foreground"><b>{key}</b>: {selected[key as keyof MockPlaceDetails]}</p>
 						))}
 					</CardContent>
 				</Card>
@@ -466,10 +464,8 @@ function HookDemo() {
 			{selected && (
 				<Card>
 					<CardContent>
-						{Object.keys(selected).map((key) => (
-							<div key={key}>
-								<span className="text-xs text-muted-foreground"><b>{key}</b>: {selected[key as keyof MockPlaceDetails]}</span>
-							</div>
+						{Object.keys(selected).map((key) => selected[key as keyof MockPlaceDetails] && (
+							<p key={key} className="text-xs text-muted-foreground"><b>{key}</b>: {selected[key as keyof MockPlaceDetails]}</p>
 						))}
 					</CardContent>
 				</Card>
@@ -499,6 +495,7 @@ export function AutocompleteForm() {
   });
 
   const handlePlaceSelect = (place: PlaceDetails) => {
+	form.setValue("street", place.street ?? "");
     form.setValue("city", place.city ?? "");
     form.setValue("country", place.country ?? "");
     form.setValue("postalCode", place.postalCode ?? "");
@@ -515,8 +512,8 @@ export function AutocompleteForm() {
             apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
             onPlaceSelect={handlePlaceSelect}
             placeholder="Street"
-			setupOptions={{ language: ["en"] }}
-			requestOptions={{ includedPrimaryTypes: ["route"] }}
+			options={{ language: "en" }}
+			fetchParams={{ includedPrimaryTypes: ["route"] }}
 			{...field}
           />
         )}
@@ -542,7 +539,7 @@ export function AutocompleteForm() {
 	isLoaded, 
 	places, 
 	autocomplete,
-	getDetails
+	getPlaceDetails
   } = useAutocomplete(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!);
 
   const form = useForm<z.infer<typeof schema>>({
@@ -551,7 +548,9 @@ export function AutocompleteForm() {
     mode: "onChange",
   });
 
-  const handlePlaceSelect = (place: PlaceDetails) => {
+  const handleSelect = async (prediction: PlacePrediction) => {
+    const place = await getPlaceDetails(prediction);
+	form.setValue("street", place.street ?? "");
     form.setValue("city", place.city ?? "");
     form.setValue("country", place.country ?? "");
     form.setValue("postalCode", place.postalCode ?? "");
@@ -571,9 +570,9 @@ export function AutocompleteForm() {
 					{(places && places.length > 0) && (
 						<Card className="w-full top-[115%] flex flex-col gap-2 absolute z-10 p-0">
 							{places.map((place) => (
-								<Button key={place.placeId} variant="ghost" className="flex items-center justify-start gap-2 py-1 px-2 w-full" onClick={() => handlePlaceSelect(place)}>
+								<Button key={place.placeId} variant="ghost" className="flex items-center justify-start gap-2 py-1 px-2 w-full" onClick={() => handleSelect(place)}>
 								<MapPinIcon className="size-4" />
-									<p className="text-sm truncate">{place.text.text}</p>
+									<p className="text-sm truncate">{place.mainText?.text}</p>
 								</Button>
 							))}
 						</Card>
@@ -599,9 +598,8 @@ export function CustomSearch() {
 	places,
 	autocomplete
   } = useAutocomplete(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!, { 
-   language: ["en"], 
+   language: "en", 
    debounceMs: 500,
-   includedPrimaryTypes: ["route"]
   });
 
   return (
@@ -610,7 +608,9 @@ export function CustomSearch() {
         type="text"
         disabled={!isLoaded}
         placeholder="Type an address..."
-        {...autocomplete({ placeholder: "Type an address..." })}
+        {...autocomplete({ placeholder: "Type an address..." },
+          { includedPrimaryTypes: ["route"] }
+        )}
       />
       <ul>
         {places?.map((place) => (
