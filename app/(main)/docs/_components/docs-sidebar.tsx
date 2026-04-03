@@ -43,6 +43,7 @@ export function DocsSidebar() {
 												href={item.href}
 												onClick={() => setOpenMobile(false)}
 											>
+												{item.icon && <item.icon className="size-4" />}
 												{item.title}
 											</Link>
 										</SidebarMenuButton>

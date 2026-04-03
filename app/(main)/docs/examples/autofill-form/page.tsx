@@ -86,7 +86,7 @@ export default function AutofillFormPage() {
 		<DocsLayout
 			title="Auto-fill Form"
 			description="An address form that auto-fills city, country, and postal code when a street is selected."
-			prev={{ title: "API Reference", href: "/docs/api-reference" }}
+			prev={{ title: "Session Token", href: "/docs/session-token" }}
 			next={{
 				title: "Input Autocomplete",
 				href: "/docs/examples/input-autocomplete",

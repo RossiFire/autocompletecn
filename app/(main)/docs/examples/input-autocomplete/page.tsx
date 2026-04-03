@@ -13,10 +13,21 @@ import { Autocomplete } from "@/components/ui/autocomplete";
 
 export function InputAutocomplete() {
 
+	const [value, setValue] = useState("");
+	const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setValue(e.target.value);
+	};
+	const onPlaceSelect = (details: PlaceDetails) => {
+		setValue(details.formattedAddress ?? "");
+	};
+
   return (
     <Autocomplete
 		apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
 		placeholder="Type to search..."
+		onPlaceSelect={onPlaceSelect}
+		onChange={onChange}
+		value={value}
 		options={{ language: "en", debounceMs: 350 }}
 		fetchParams={{ includedPrimaryTypes: ["route"] }}
 	/>

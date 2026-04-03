@@ -200,41 +200,33 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
 // Mock Autocomplete
 // ---------------------------------------------------------------------------
 
-interface DemoAutocompleteProps
-	extends Omit<React.ComponentProps<"input">, "onChange" | "value"> {
+interface DemoAutocompleteProps extends React.ComponentProps<"input"> {
 	onPlaceSelect?: (details: MockPlaceDetails) => void;
-	onChange?: (value: string) => void;
-	value?: string;
 }
 
 function DemoAutocomplete({
 	className,
 	onPlaceSelect,
 	onChange,
-	value = "",
 	onFocus,
 	onBlur,
 	disabled,
 	...props
 }: DemoAutocompleteProps) {
-	const [inputValue, setInputValue] = React.useState(value);
 	const [predictions, setPredictions] = React.useState<MockPrediction[]>([]);
 	const [isOpen, setIsOpen] = React.useState(false);
 	const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
 	const anchorRef = React.useRef<HTMLDivElement>(null);
 	const listId = React.useId();
 
-	React.useEffect(() => { setInputValue(value); }, [value]);
 	React.useEffect(() => {
 		if (highlightedIndex < 0) return;
 		document.getElementById(`${listId}-${highlightedIndex}`)?.scrollIntoView({ block: "nearest" });
 	}, [highlightedIndex, listId]);
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const val = e.target.value;
-		setInputValue(val);
-		onChange?.(val);
-		const results = filterAddresses(val);
+		onChange?.(e);
+		const results = filterAddresses(e.target.value);
 		setPredictions(results);
 		setIsOpen(results.length > 0);
 		setHighlightedIndex(-1);
@@ -243,9 +235,7 @@ function DemoAutocomplete({
 	const handleSelect = (prediction: MockPrediction) => {
 		setIsOpen(false);
 		setHighlightedIndex(-1);
-		setInputValue(prediction.mainText);
 		onPlaceSelect?.(prediction.details);
-		onChange?.(prediction.mainText);
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -258,14 +248,16 @@ function DemoAutocomplete({
 		}
 	};
 
+	const query = typeof props.value === "string" ? props.value : "";
+
 	return (
 		<Popover open={isOpen} onOpenChange={(o) => { if (!o) { setIsOpen(false); setHighlightedIndex(-1); } }}>
 			<PopoverAnchor asChild>
 				<div ref={anchorRef} data-slot="autocomplete">
 					<Input
-						data-slot="autocomplete-input" className={className} value={inputValue}
+						data-slot="autocomplete-input" className={className}
 						onChange={handleChange} onKeyDown={handleKeyDown}
-						onFocus={(e) => { if (inputValue && predictions.length) setIsOpen(true); onFocus?.(e); }}
+						onFocus={(e) => { if (props.value && predictions.length) setIsOpen(true); onFocus?.(e); }}
 						onBlur={onBlur} disabled={disabled} role="combobox"
 						aria-expanded={isOpen} aria-haspopup="listbox" aria-autocomplete="list"
 						aria-controls={isOpen ? listId : undefined}
@@ -286,7 +278,7 @@ function DemoAutocomplete({
 									index === highlightedIndex ? "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground" : "text-popover-foreground")}
 								onMouseEnter={() => setHighlightedIndex(index)} onMouseDown={(e) => e.preventDefault()} onClick={() => handleSelect(prediction)}>
 								<MapPinIcon className="size-4 shrink-0 text-muted-foreground" />
-								<span className="truncate"><HighlightedText text={prediction.mainText} query={inputValue} /></span>
+								<span className="truncate"><HighlightedText text={prediction.mainText} query={query} /></span>
 								<span className="truncate text-xs text-muted-foreground">{prediction.secondaryText}</span>
 							</Button>
 						))}
@@ -323,6 +315,7 @@ function IntegratedDemo() {
 	});
 
 	const handlePlaceSelect = (place: MockPlaceDetails) => {
+		form.setValue("street", `${place.route ?? ""} ${place.streetNumber ?? ""}`.trim(), { shouldValidate: true });
 		form.setValue("city", place.city ?? "");
 		form.setValue("country", place.country ?? "");
 		form.setValue("postalCode", place.postalCode ?? "");
@@ -478,7 +471,16 @@ function HookDemo() {
 // Code strings (real usage, not mock)
 // ---------------------------------------------------------------------------
 
-const INTEGRATED_CODE = `const schema = z.object({
+const INTEGRATED_CODE = `import { Input } from "@/components/ui/input";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Controller, useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Autocomplete } from "@/components/ui/autocomplete";
+import { PlaceDetails } from "@/hooks/use-autocomplete";
+import * as z from "zod";
+
+const schema = z.object({
   street: z.string().min(5).max(100),
   city: z.string().min(2),
   country: z.string().min(2),
@@ -495,7 +497,7 @@ export function AutocompleteForm() {
   });
 
   const handlePlaceSelect = (place: PlaceDetails) => {
-	form.setValue("street", place.street ?? "");
+	form.setValue("street", \`\${place.route} \${place.streetNumber}\` ?? "");
     form.setValue("city", place.city ?? "");
     form.setValue("country", place.country ?? "");
     form.setValue("postalCode", place.postalCode ?? "");
@@ -518,14 +520,37 @@ export function AutocompleteForm() {
           />
         )}
       />
-
-      ...
-	  
+	  <Controller
+        control={form.control}
+        name="street"
+        render={({ field }) => <Input {...field} placeholder="Auto-filled" readOnly /> }
+      />
+      <Controller
+        control={form.control}
+        name="street"
+        render={({ field }) => <Input {...field} placeholder="Auto-filled" readOnly /> }
+      />
+	  <Controller
+        control={form.control}
+        name="street"
+        render={({ field }) => <Input {...field} placeholder="Auto-filled" readOnly /> }
+      />
+	  <Button type="submit" disabled={!form.formState.isValid} className="w-full">Submit</Button>
     </form>
   );
 }`;
 
-const COMPONENT_CODE = `const schema = z.object({
+const COMPONENT_CODE = `import { Input } from "@/components/ui/input";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { useAutocomplete } from "@/hooks/use-autocomplete";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { MapPinIcon } from "lucide-react";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const schema = z.object({
   street: z.string().min(5).max(100),
   city: z.string().min(2),
   country: z.string().min(2),
@@ -589,7 +614,8 @@ export function AutocompleteForm() {
   );
 }`;
 
-const HOOK_CODE = `import { useAutocomplete } from "@/hooks/use-autocomplete";
+const HOOK_CODE = `import { Input } from "@/components/ui/input";
+import { useAutocomplete } from "@/hooks/use-autocomplete";
 
 export function CustomSearch() {
   const { 
@@ -710,9 +736,9 @@ export function HomepageDemo() {
 	const PreviewComponent = current.preview;
 
 	return (
-		<div className="flex flex-col gap-6 lg:flex-row lg:gap-0">
-			{/* Left: Drilldown selector */}
-			<div className="flex shrink-0 flex-row gap-2 lg:w-1/3 lg:flex-col lg:gap-1 lg:pr-6">
+		<div className="flex flex-col gap-8">
+			{/* Top: Selector */}
+			<div className="flex flex-row gap-2">
 				{SHOWCASE_ITEMS.map((item) => {
 					const isActive = item.id === selectedId;
 					return (
@@ -721,7 +747,7 @@ export function HomepageDemo() {
 							type="button"
 							onClick={() => { setSelectedId(item.id); setTab("preview"); }}
 							className={cn(
-								"group flex flex-1 cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors lg:flex-initial",
+								"group flex flex-1 cursor-pointer items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors",
 								isActive
 									? "bg-accent"
 									: "hover:bg-accent/50"
@@ -731,7 +757,7 @@ export function HomepageDemo() {
 								<p className={cn("text-sm font-medium", isActive ? "text-foreground" : "text-foreground/80")}>
 									{item.title}
 								</p>
-								<p className="text-muted-foreground mt-0.5 hidden text-xs leading-snug lg:block">
+								<p className="text-muted-foreground mt-0.5 hidden text-xs leading-snug sm:block">
 									{item.subtitle}
 								</p>
 							</div>
@@ -748,8 +774,8 @@ export function HomepageDemo() {
 				})}
 			</div>
 
-			{/* Right: Content box */}
-			<div className="flex min-w-0 flex-col overflow-hidden rounded-xl border lg:w-2/3">
+			{/* Bottom: Content box */}
+			<div className="flex w-full flex-col overflow-hidden rounded-xl border">
 				{/* Tab bar */}
 				<div className="flex border-b bg-muted/30">
 					<button
@@ -781,7 +807,7 @@ export function HomepageDemo() {
 				</div>
 
 				{/* Content */}
-				<div className="flex-1 overflow-auto min-h-[400px]">
+				<div className={cn("flex-1 overflow-auto min-h-[400px] flex items-center", tab === "preview" && "justify-center")}>
 					{tab === "preview" ? (
 						<div className="p-6 max-w-xl mx-auto h-full flex items-center justify-center">
 							<PreviewComponent key={selectedId} />

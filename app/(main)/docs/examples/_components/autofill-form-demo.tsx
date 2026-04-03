@@ -39,6 +39,7 @@ export function AutofillFormDemo() {
 	
 
 	const handlePlaceSelect = (place: MockPlaceDetails) => {
+		form.setValue("street", `${place.route ?? ""} ${place.streetNumber ?? ""}`.trim(), { shouldValidate: true });
 		form.setValue("city", place.city ?? "");
 		form.setValue("country", place.country ?? "");
 		form.setValue("postalCode", place.postalCode ?? "");

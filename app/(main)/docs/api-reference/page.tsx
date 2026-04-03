@@ -318,7 +318,7 @@ export default function ApiReferencePage() {
 			title="API Reference"
 			description="Complete reference for the Autocomplete component and useAutocomplete hook."
 			prev={{ title: "Installation", href: "/docs/installation" }}
-			next={{ title: "Auto-fill Form", href: "/docs/examples/autofill-form" }}
+			next={{ title: "Session Token", href: "/docs/session-token" }}
 			toc={[
 				{ title: "Autocomplete", slug: "autocomplete" },
 				{ title: "useAutocomplete()", slug: "useautocomplete" },

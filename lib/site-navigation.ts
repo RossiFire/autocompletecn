@@ -1,9 +1,9 @@
-import { BookOpen, CornerDownRight, FileCode, FlaskConical, type LucideIcon } from "lucide-react";
+import { Book, CornerDownRight, FileText, FlaskConical, RefreshCcw, Wrench, type LucideIcon } from "lucide-react";
 
 export interface SiteNavigationItem {
 	title: string;
 	href: string;
-	icon: LucideIcon;
+	icon?: LucideIcon;
 }
 
 export interface SiteNavigationGroup {
@@ -15,16 +15,17 @@ export const docsNavigation: SiteNavigationGroup[] = [
 	{
 		title: "Basics",
 		items: [
-			{ title: "Getting Started", href: "/docs", icon: BookOpen },
-			{ title: "Installation", href: "/docs/installation", icon: BookOpen },
-			{ title: "API Reference", href: "/docs/api-reference", icon: FileCode },
+			{ title: "Getting Started", href: "/docs", icon: Book },
+			{ title: "Installation", href: "/docs/installation", icon: Wrench },
+			{ title: "API Reference", href: "/docs/api-reference", icon: FileText },
+			{ title: "Session Token", href: "/docs/session-token", icon: RefreshCcw },
 		],
 	},
 	{
 		title: "Examples",
 		items: [
-			{ title: "Auto-fill Form", href: "/docs/examples/autofill-form", icon: FlaskConical },
-			{ title: "Input Autocomplete", href: "/docs/examples/input-autocomplete", icon: FlaskConical },
+			{ title: "Auto-fill Form", href: "/docs/examples/autofill-form" },
+			{ title: "Input Autocomplete", href: "/docs/examples/input-autocomplete" },
 		],
 	},
 ];
@@ -32,6 +33,8 @@ export const docsNavigation: SiteNavigationGroup[] = [
 const navItems: SiteNavigationItem[] = [
 	{ title: "Home", href: "/", icon: CornerDownRight },
 	{ title: "Docs", href: "/docs", icon: CornerDownRight },
+	{ title: "Examples", href: "/docs/examples/autofill-form", icon: FlaskConical },
+
 ];
 
 export const siteNavigation: SiteNavigationGroup[] = [

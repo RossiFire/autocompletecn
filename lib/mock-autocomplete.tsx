@@ -198,41 +198,33 @@ function HighlightedText({ text, query }: { text: string; query: string }) {
 // DemoAutocomplete component
 // ---------------------------------------------------------------------------
 
-export interface DemoAutocompleteProps
-	extends Omit<React.ComponentProps<"input">, "onChange" | "value"> {
+export interface DemoAutocompleteProps extends React.ComponentProps<"input"> {
 	onPlaceSelect?: (details: MockPlaceDetails) => void;
-	onChange?: (value: string) => void;
-	value?: string;
 }
 
 export function DemoAutocomplete({
 	className,
 	onPlaceSelect,
 	onChange,
-	value = "",
 	onFocus,
 	onBlur,
 	disabled,
 	...props
 }: DemoAutocompleteProps) {
-	const [inputValue, setInputValue] = React.useState(value);
 	const [predictions, setPredictions] = React.useState<MockPrediction[]>([]);
 	const [isOpen, setIsOpen] = React.useState(false);
 	const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
 	const anchorRef = React.useRef<HTMLDivElement>(null);
 	const listId = React.useId();
 
-	React.useEffect(() => { setInputValue(value); }, [value]);
 	React.useEffect(() => {
 		if (highlightedIndex < 0) return;
 		document.getElementById(`${listId}-${highlightedIndex}`)?.scrollIntoView({ block: "nearest" });
 	}, [highlightedIndex, listId]);
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const val = e.target.value;
-		setInputValue(val);
-		onChange?.(val);
-		const results = filterAddresses(val);
+		onChange?.(e);
+		const results = filterAddresses(e.target.value);
 		setPredictions(results);
 		setIsOpen(results.length > 0);
 		setHighlightedIndex(-1);
@@ -241,9 +233,7 @@ export function DemoAutocomplete({
 	const handleSelect = (prediction: MockPrediction) => {
 		setIsOpen(false);
 		setHighlightedIndex(-1);
-		setInputValue(prediction.mainText);
 		onPlaceSelect?.(prediction.details);
-		onChange?.(prediction.mainText);
 	};
 
 	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -256,14 +246,16 @@ export function DemoAutocomplete({
 		}
 	};
 
+	const query = typeof props.value === "string" ? props.value : "";
+
 	return (
 		<Popover open={isOpen} onOpenChange={(o) => { if (!o) { setIsOpen(false); setHighlightedIndex(-1); } }}>
 			<PopoverAnchor asChild>
 				<div ref={anchorRef} data-slot="autocomplete">
 					<Input
-						data-slot="autocomplete-input" className={className} value={inputValue}
+						data-slot="autocomplete-input" className={className}
 						onChange={handleChange} onKeyDown={handleKeyDown}
-						onFocus={(e) => { if (inputValue && predictions.length) setIsOpen(true); onFocus?.(e); }}
+						onFocus={(e) => { if (props.value && predictions.length) setIsOpen(true); onFocus?.(e); }}
 						onBlur={onBlur} disabled={disabled} role="combobox"
 						aria-expanded={isOpen} aria-haspopup="listbox" aria-autocomplete="list"
 						aria-controls={isOpen ? listId : undefined}
@@ -284,7 +276,7 @@ export function DemoAutocomplete({
 									index === highlightedIndex ? "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground" : "text-popover-foreground")}
 								onMouseEnter={() => setHighlightedIndex(index)} onMouseDown={(e) => e.preventDefault()} onClick={() => handleSelect(prediction)}>
 								<MapPinIcon className="size-4 shrink-0 text-muted-foreground" />
-								<span className="truncate"><HighlightedText text={prediction.mainText} query={inputValue} /></span>
+								<span className="truncate"><HighlightedText text={prediction.mainText} query={query} /></span>
 								<span className="truncate text-xs text-muted-foreground">{prediction.secondaryText}</span>
 							</Button>
 						))}
