@@ -119,7 +119,7 @@ export default function HomePage() {
 							</Link>
 						</Button>
 					</div>
-					<Glow glowColor="#4834d4" className="animate-fade-up overflow-hidden h-10 mt-12">
+					<Glow glowColor="#4834d4" className="animate-fade-up overflow-hidden h-10 mt-12 hidden md:block">
 						<Badge variant="outline" className="gap-1.5 pl-3 h-full text-sm relative z-10 bg-background dark:bg-background">
 							{installCode}
 							<CopyButton text={usageCode} />

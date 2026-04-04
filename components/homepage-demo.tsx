@@ -738,7 +738,7 @@ export function HomepageDemo() {
 	return (
 		<div className="flex flex-col gap-8">
 			{/* Top: Selector */}
-			<div className="flex flex-row gap-2">
+			<div className="flex flex-col md:flex-row gap-2">
 				{SHOWCASE_ITEMS.map((item) => {
 					const isActive = item.id === selectedId;
 					return (
