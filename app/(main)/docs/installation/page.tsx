@@ -7,6 +7,7 @@ import {
 } from "../_components/docs";
 import { CodeBlock } from "../_components/code-block";
 import type { Metadata } from "next";
+import { Stepper } from "@/components/stepper";
 
 const installComponentCommand =
 	"npx shadcn@latest add https://autocompletecn.dev/r/autocomplete.json";
@@ -69,6 +70,24 @@ export function CustomAutocomplete() {
   );
 }`;
 
+const steps = [
+	{ label: "Activate the Places API (New)", content: (
+		<>
+		<p>Go to the <DocsLink href="https://console.cloud.google.com" external>Google Cloud Console</DocsLink> and search for <strong>APIs & Services</strong></p>
+		<p>Then click on "Enable APIs and Services"</p>
+		<p>In the search bar, type "Places API (New)" and click on it</p>
+		<p>Then click on "Enable"</p>
+		</>
+	) },
+	{ label: "Create a new API key", content: (
+		<>
+		<p>Back in the <strong>APIs & Services</strong> page, click on "Credentials" in the left sidebar</p>
+		<p>Then click on "Create credentials"</p>
+		<p>Select "API key", fill the required fields and click on "Create"</p>
+		</>
+	) },
+];
+
 export const metadata: Metadata = {
 	title: "Installation",
 	description: "How to install and set up autocompletecn in your project.",
@@ -87,6 +106,7 @@ export default function InstallationPage() {
 				{ title: "Install Just the Hook", slug: "install-just-the-hook" },
 				{ title: "Component Usage", slug: "component-usage" },
 				{ title: "Hook-only Usage", slug: "hook-only-usage" },
+				{ title: "Google Maps API Key Guide", slug: "google-maps-api-key-guide" },
 			]}
 		>
 			<DocsSection title="Prerequisites">
@@ -102,14 +122,8 @@ export default function InstallationPage() {
 					set up.
 				</p>
 				<p>
-					You also need a{" "}
-					<DocsLink
-						href="https://developers.google.com/maps/documentation/javascript/get-api-key"
-						external
-					>
-						Google Maps API key
-					</DocsLink>{" "}
-					with the <strong>Places API</strong> enabled.
+					A Google Maps API key
+					with the <strong>Places API (New)</strong> enabled. <DocsLink href="#google-maps-api-key-guide">Below</DocsLink> there's a guide on how to get one.
 				</p>
 			</DocsSection>
 
@@ -148,10 +162,17 @@ export default function InstallationPage() {
 
 
 			<DocsNote>
-				<strong>Note:</strong> The component uses Google Maps Places API session
-				tokens automatically. A new token is created when the suggestions list
-				is cleared, keeping API costs efficient.
+				<strong>Note:</strong> The component manages Google Maps Places API session
+				tokens automatically by default. Check the <DocsLink href="/docs/session-token">Session Token</DocsLink> page for more details.
 			</DocsNote>
+
+			<DocsSection title="Google Maps API Key Guide">
+				Follow the steps below to get a Google Maps API key with the Places API (New) enabled:
+				<Stepper steps={steps} currentStep={2} className="mt-8" allContentVisible={true} />
+				<DocsNote>
+				Once you have the API key, I recommend you to store it in a <DocsCode>.env</DocsCode> file as <DocsCode>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</DocsCode>
+				</DocsNote>
+			</DocsSection>
 		</DocsLayout>
 	);
 }
