@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
 	title: "API Reference",
+	description: "Complete reference for the Autocomplete component and useAutocomplete hook.",
 };
 
 function PropTable({

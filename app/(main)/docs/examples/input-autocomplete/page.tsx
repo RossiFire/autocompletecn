@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
 	title: "Input Autocomplete",
+	description: "Single input Autocomplete for quick address search.",
 };
 
 const exampleCode = `"use client";

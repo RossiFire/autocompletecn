@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
 	title: "Auto-fill Form",
+	description: "An address form that auto-fills city, country, and postal code when a street is selected.",
 };
 
 const exampleCode = `"use client";

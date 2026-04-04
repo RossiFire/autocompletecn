@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
 	title: "Session Token",
+	description: "How autocompletecn manages Google Maps session tokens and how to take full control when needed.",
 };
 
 const uncontrolledCode = `import { useAutocomplete } from "@/hooks/use-autocomplete";

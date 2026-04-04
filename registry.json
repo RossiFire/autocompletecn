@@ -23,12 +23,24 @@
 			"title": "Autocomplete",
 			"description": "A composable Google Maps Places autocomplete component with keyboard navigation, highlighting, and accessible listbox.",
 			"dependencies": ["@googlemaps/js-api-loader", "lucide-react"],
-			"registryDependencies": ["use-autocomplete", "button", "input", "popover"],
+			"registryDependencies": ["button", "input", "popover"],
 			"files": [
 				{
 					"path": "components/ui/autocomplete.tsx",
 					"type": "registry:ui",
-					"target": "components/ui/autocomplete.tsx"
+					"target": "components/ui/autocomplete.tsx",
+					"style": "default"
+				},
+				{
+					"path": "components/ui/autocomplete-baseui.tsx",
+					"type": "registry:ui",
+					"target": "components/ui/autocomplete.tsx",
+					"style": "base"
+				},
+				{
+					"path": "hooks/use-autocomplete.ts",
+					"type": "registry:hook",
+					"target": "hooks/use-autocomplete.ts"
 				}
 			]
 		}

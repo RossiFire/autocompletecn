@@ -28,7 +28,19 @@
 				{
 					"path": "components/ui/autocomplete.tsx",
 					"type": "registry:ui",
-					"target": "components/ui/autocomplete.tsx"
+					"target": "components/ui/autocomplete.tsx",
+					"style": "default"
+				},
+				{
+					"path": "components/ui/autocomplete-baseui.tsx",
+					"type": "registry:ui",
+					"target": "components/ui/autocomplete.tsx",
+					"style": "base"
+				},
+				{
+					"path": "hooks/use-autocomplete.ts",
+					"type": "registry:hook",
+					"target": "hooks/use-autocomplete.ts"
 				}
 			]
 		}

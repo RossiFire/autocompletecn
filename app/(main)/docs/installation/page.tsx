@@ -71,6 +71,7 @@ export function CustomAutocomplete() {
 
 export const metadata: Metadata = {
 	title: "Installation",
+	description: "How to install and set up autocompletecn in your project.",
 };
 
 export default function InstallationPage() {
@@ -82,7 +83,7 @@ export default function InstallationPage() {
 			next={{ title: "API Reference", href: "/docs/api-reference" }}
 			toc={[
 				{ title: "Prerequisites", slug: "prerequisites" },
-				{ title: "Install the Component", slug: "install-the-component" },
+				{ title: "Basic Installation", slug: "basic-installation" },
 				{ title: "Install Just the Hook", slug: "install-just-the-hook" },
 				{ title: "Component Usage", slug: "component-usage" },
 				{ title: "Hook-only Usage", slug: "hook-only-usage" },
@@ -112,7 +113,7 @@ export default function InstallationPage() {
 				</p>
 			</DocsSection>
 
-			<DocsSection title="Install the Component">
+			<DocsSection title="Basic Installation">
 				<p>
 					Run the following command to add the full autocomplete component. This
 					will also install the <DocsCode>useAutocomplete</DocsCode> hook as a

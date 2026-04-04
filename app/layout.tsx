@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import "./globals.css";
+import { allowIndexing } from "@/lib/indexing";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -27,13 +28,14 @@ export const metadata: Metadata = {
 		"tailwind",
 		"places api",
 	],
-	authors: [{ name: "autocompletecn" }],
-	creator: "autocompletecn",
-	formatDetection: {
-		email: false,
-		address: false,
-		telephone: false,
-	},
+	authors: [
+		{ 
+			name: "dnaiele", 
+			url: "https://danielerossino.com",
+		}
+	],
+	creator: "dnaiele",
+	...allowIndexing(),	
 };
 
 export default function RootLayout({
