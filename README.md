@@ -6,9 +6,9 @@
 </p>
 
 <p align="center">
-  <a href="https://autocompletecn.dev/docs">Get Started</a> ·
-  <a href="https://autocompletecn.dev/docs/installation">Installation</a> ·
-  <a href="https://autocompletecn.dev/docs/api-reference">API Reference</a>
+  <a href="https://autocompletecn.vercel.app/docs">Get Started</a> ·
+  <a href="https://autocompletecn.vercel.app/docs/installation">Installation</a> ·
+  <a href="https://autocompletecn.vercel.app/docs/api-reference">API Reference</a>
 </p>
 
 <br />
@@ -24,13 +24,13 @@
 ## Installation
 
 ```bash
-npx shadcn@latest add https://autocompletecn.dev/r/autocomplete.json
+npx shadcn@latest add https://autocompletecn.vercel.app/r/autocomplete.json
 ```
 
 Or install just the hook:
 
 ```bash
-npx shadcn@latest add https://autocompletecn.dev/r/use-autocomplete.json
+npx shadcn@latest add https://autocompletecn.vercel.app/r/use-autocomplete.json
 ```
 
 ## Quick Start

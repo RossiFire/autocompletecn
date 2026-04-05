@@ -1,7 +1,7 @@
 {
 	"$schema": "https://ui.shadcn.com/schema/registry.json",
 	"name": "autocompletecn",
-	"homepage": "https://autocompletecn.dev",
+	"homepage": "https://autocompletecn.vercel.app",
 	"items": [
 		{
 			"name": "use-autocomplete",

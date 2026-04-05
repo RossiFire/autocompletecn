@@ -10,10 +10,10 @@ import type { Metadata } from "next";
 import { Stepper } from "@/components/stepper";
 
 const installComponentCommand =
-	"npx shadcn@latest add https://autocompletecn.dev/r/autocomplete.json";
+	`npx shadcn@latest add ${process.env.NEXT_PUBLIC_BASE_URL}/r/autocomplete.json`;
 
 const installHookCommand =
-	"npx shadcn@latest add https://autocompletecn.dev/r/use-autocomplete.json";
+	`npx shadcn@latest add ${process.env.NEXT_PUBLIC_BASE_URL}/r/use-autocomplete.json`;
 
 const componentUsageCode = `import { Autocomplete } from "@/components/ui/autocomplete";
 

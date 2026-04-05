@@ -44,7 +44,7 @@ const features = [
 ];
 
 const installCode =
-	"npx shadcn@latest add https://autocompletecn.dev/r/autocomplete.json";
+	`npx shadcn@latest add ${process.env.NEXT_PUBLIC_BASE_URL}/r/autocomplete.json`;
 
 const usageCode = `import { Autocomplete } from "@/components/ui/autocomplete";
 
