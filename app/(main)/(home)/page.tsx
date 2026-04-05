@@ -43,22 +43,7 @@ const features = [
 	},
 ];
 
-const installCode =
-	`npx shadcn@latest add ${process.env.NEXT_PUBLIC_BASE_URL}/r/autocomplete.json`;
-
-const usageCode = `import { Autocomplete } from "@/components/ui/autocomplete";
-
-export function AddressForm() {
-  return (
-    <Autocomplete
-      apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}
-      placeholder="Search for an address..."
-      onPlaceSelect={(details) => {
-        console.log(details.formattedAddress);
-      }}
-    />
-  );
-}`;
+const installCode = `npx shadcn@latest add ${process.env.NEXT_PUBLIC_BASE_URL}/r/autocomplete.json`;
 
 export default function HomePage() {
 	return (
@@ -122,7 +107,7 @@ export default function HomePage() {
 					<Glow glowColor="#4834d4" className="animate-fade-up overflow-hidden h-10 mt-12 hidden md:block">
 						<Badge variant="outline" className="gap-1.5 pl-3 h-full text-sm relative z-10 bg-background dark:bg-background">
 							{installCode}
-							<CopyButton text={usageCode} />
+							<CopyButton text={installCode} />
 						</Badge>
 					</Glow>
 				</section>
