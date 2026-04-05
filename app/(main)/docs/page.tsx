@@ -1,4 +1,4 @@
-import { Zap, Code, Puzzle, Box, Keyboard, Globe, AlertCircleIcon } from "lucide-react";
+import { Zap, Puzzle, Keyboard, Globe, AlertCircleIcon } from "lucide-react";
 import { DocsLayout, DocsSection, DocsLink } from "./_components/docs";
 import type { Metadata } from "next";
 import { Alert, AlertTitle } from "@/components/ui/alert";
@@ -12,22 +12,10 @@ const features = [
 			"Install with a single shadcn CLI command. Works with any project that has shadcn/ui set up.",
 	},
 	{
-		icon: Code,
-		title: "TypeScript",
-		description:
-			"Full type safety with comprehensive TypeScript support and Google Maps types.",
-	},
-	{
 		icon: Puzzle,
 		title: "Composable",
 		description:
 			"Use the full component or just the hook for complete control over the UI.",
-	},
-	{
-		icon: Box,
-		title: "Copy & Paste",
-		description:
-			"Own your code. No heavy dependencies, just copy into your project and customize.",
 	},
 	{
 		icon: Keyboard,
