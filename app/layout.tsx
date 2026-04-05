@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 import { allowIndexing } from "@/lib/indexing";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -47,9 +48,7 @@ export default function RootLayout({
 				<ThemeProvider>
 					<TooltipProvider>{children}</TooltipProvider>
 				</ThemeProvider>
-				{process.env.GOOGLE_ANALYTICS_TAG && (
-					<GoogleAnalytics gaId={process.env.GOOGLE_ANALYTICS_TAG} />
-				)}
+				{process.env.environment === "production" && <Script defer src={process.env.ANALYTICS_SCRIPT_SRC} data-website-id={process.env.ANALYTICS_SCRIPT_ID}></Script>}
 			</body>
 		</html>
 	);
