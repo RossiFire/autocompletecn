@@ -21,13 +21,13 @@ const features = [
 		icon: ShieldCheck,
 		title: "Compliant",
 		className: "text-emerald-500",
-		description: "Our provided Autocomplete component is compliant with Google Maps API Policies, including 'Provided by Google' branding, text matching highlighting and more.",
+		description: "Autocompletecn is compliant with Google Maps API Policies, including the 'Provided by Google' branding, text matching highlighting and more.",
 	},
 	{
 		icon: Blocks,
 		title: "Shadcn/ui compatible",
 		className: "text-blue-500",
-		description: "Autocomplete component is fully integrated with Shadcn/ui and react-hook-form, but still with wide customization.",
+		description: "The Autocomplete component is based on BaseUI and so it's fully integrated with Shadcn/ui and react-hook-form.",
 	},
 	{
 		icon: Puzzle,
@@ -73,9 +73,9 @@ export default function HomePage() {
 					</h1>
 
 					<p className="text-muted-foreground animate-fade-up max-w-2xl text-center leading-relaxed delay-200 sm:text-lg sm:leading-relaxed md:text-xl md:leading-relaxed">
-						Ready to use and customizable autocomplete for React.
+						The [auto]complete solution designed for everyone.
 						<br className="hidden sm:block" />
-						Built with Google Maps Places API and Shadcn/UI.
+						Built with Google Places API and BaseUI.
 					</p>
 
 					<div className="animate-fade-up flex flex-wrap items-center justify-center gap-3 delay-400 mt-4">
@@ -123,7 +123,7 @@ export default function HomePage() {
 					Everything you need
 				</h2>
 				<p className="text-muted-foreground animate-fade-up mx-auto mt-3 max-w-xl text-center text-lg delay-200">
-					A complete autocomplete solution designed for everyone.
+					Ready to use and customizable autocomplete for React.
 				</p>
 
 				<div className="animate-fade-in mt-12 grid grid-cols-1 gap-5 delay-300 sm:grid-cols-2">

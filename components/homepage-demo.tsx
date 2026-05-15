@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { MapPinIcon, ArrowRight, Eye, Code, Rocket } from "lucide-react";
+import { MapPinIcon, ArrowRight, Eye, Rocket, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -522,17 +522,17 @@ export function AutocompleteForm() {
       />
 	  <Controller
         control={form.control}
-        name="street"
+        name="city"
         render={({ field }) => <Input {...field} placeholder="Auto-filled" readOnly /> }
       />
       <Controller
         control={form.control}
-        name="street"
+        name="country"
         render={({ field }) => <Input {...field} placeholder="Auto-filled" readOnly /> }
       />
 	  <Controller
         control={form.control}
-        name="street"
+        name="postalCode"
         render={({ field }) => <Input {...field} placeholder="Auto-filled" readOnly /> }
       />
 	  <Button type="submit" disabled={!form.formState.isValid} className="w-full">Submit</Button>
@@ -634,9 +634,7 @@ export function CustomSearch() {
         type="text"
         disabled={!isLoaded}
         placeholder="Type an address..."
-        {...autocomplete({ placeholder: "Type an address..." },
-          { includedPrimaryTypes: ["route"] }
-        )}
+        {...autocomplete({ includedPrimaryTypes: ["route"] })}
       />
       <ul>
         {places?.map((place) => (
@@ -801,13 +799,13 @@ export function HomepageDemo() {
 								: "text-muted-foreground hover:text-foreground"
 						)}
 					>
-						<Code className="size-4" />
+						<Code2 className="size-4" />
 						Code
 					</button>
 				</div>
 
 				{/* Content */}
-				<div className={cn("flex-1 overflow-auto min-h-[400px] flex items-center", tab === "preview" && "justify-center")}>
+				<div className={cn("flex-1 overflow-auto min-h-[500px] flex items-center", tab === "preview" && "justify-center")}>
 					{tab === "preview" ? (
 						<div className="p-6 max-w-xl mx-auto h-full flex items-center justify-center">
 							<PreviewComponent key={selectedId} />

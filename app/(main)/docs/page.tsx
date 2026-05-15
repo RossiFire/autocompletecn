@@ -54,18 +54,18 @@ export default function GettingStartedPage() {
 			<DocsSection title="Why autocompletecn?">
 				<p>
 					Integrating Google Maps Autocomplete into a React project has always been
-					furstrating. The implementation differs project by project and stuff like Styling and API integration often requires complex workarounds. <strong>autocompletecn</strong> handles all of this for, make the autocomplete integration seamless and easy.
+					furstrating. The implementation differs by projects and things like styling and API integration often requires complex workarounds. <strong>autocompletecn</strong> handles all of this, making the autocomplete integration seamless and easy.
 				</p>
 				<p>
-					Additionally, autocompletecn is built to be fully integrated with the{" "}
+					Autocompletecn component is built on top of BaseUI, so it can be drop-in in your{" "}
 					<DocsLink href="https://ui.shadcn.com/" external>
 						shadcn/ui
 					</DocsLink>{" "}
-					ecosystem.
+					ecosystem without headache.
 				</p>
 			</DocsSection>
 
-			<DocsSection title="Two ways to use">
+			<DocsSection title="Ways to use">
 				<p>
 					<strong>autocompletecn</strong> gives you two main options depending on your
 					needs:

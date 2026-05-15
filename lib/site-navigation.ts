@@ -1,4 +1,4 @@
-import { Book, CornerDownRight, FileText, FlaskConical, RefreshCcw, Wrench, type LucideIcon } from "lucide-react";
+import { Book, Code2, CornerDownRight, FileText, FlaskConical, RefreshCcw, Wrench, type LucideIcon } from "lucide-react";
 
 export interface SiteNavigationItem {
 	title: string;
@@ -17,6 +17,7 @@ export const docsNavigation: SiteNavigationGroup[] = [
 		items: [
 			{ title: "Getting Started", href: "/docs", icon: Book },
 			{ title: "Installation", href: "/docs/installation", icon: Wrench },
+			{ title: "Usage", href: "/docs/usage", icon: Code2 },
 			{ title: "API Reference", href: "/docs/api-reference", icon: FileText },
 			{ title: "Session Token", href: "/docs/session-token", icon: RefreshCcw },
 		],

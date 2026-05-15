@@ -124,13 +124,13 @@ const hookOptions = [
 		name: "sessionToken",
 		type: "AutocompleteSessionToken",
 		description:
-			"When provided, the hook enters controlled mode: it uses this token directly and never creates or rotates tokens internally. Pair with onSessionEnd to know when to supply a fresh token. When omitted, the hook manages the token lifecycle automatically (uncontrolled mode).",
+			"When provided, the hook enters in manual mode: it uses this token directly and never creates or rotates tokens internally. Pair with onSessionEnd to know when to supply a fresh token. When omitted, the hook manages the token lifecycle in Automatic mode.",
 	},
 	{
 		name: "onSessionEnd",
 		type: "() => void",
 		description:
-			"Called when a session ends (place selected or input cleared). Only relevant in controlled mode — use it to rotate the sessionToken you pass in.",
+			"Called when a session ends (place selected or input cleared). Only relevant in manual mode — use it to rotate the sessionToken you pass in.",
 	},
 	{
 		name: "...loaderOptions",
@@ -174,7 +174,7 @@ const hookReturn = [
 		name: "getPlaceDetails",
 		type: "(prediction: PlacePrediction) => Promise<PlaceDetails>",
 		description:
-			"Fetches full place details for a prediction. Ends the current session after each call — in uncontrolled mode this rotates the token automatically; in controlled mode it fires onSessionEnd.",
+			"Fetches full place details for a prediction. Ends the current session after each call — in automated mode this rotates the token automatically; in manual mode it fires onSessionEnd.",
 	},
 	{
 		name: "autocomplete",
@@ -322,14 +322,14 @@ export default function ApiReferencePage() {
 			next={{ title: "Session Token", href: "/docs/session-token" }}
 			toc={[
 				{ title: "Autocomplete", slug: "autocomplete" },
-				{ title: "useAutocomplete()", slug: "useautocomplete" },
+				{ title: "useAutocomplete", slug: "useautocomplete" },
 				{ title: "UseAutocompleteOptions", slug: "useautocompleteoptions" },
 				{ title: "Return Value", slug: "return-value" },
 				{ title: "PlaceDetails", slug: "placedetails" },
-				{ title: "FetchParams", slug: "FetchParams" },
-				{ title: "getSuggestions()", slug: "getsuggestions" },
-				{ title: "getPlaceDetails()", slug: "getplacedetails" },
-				{ title: "autocomplete()", slug: "autocomplete-1" },
+				{ title: "FetchParams", slug: "fetchparams" },
+				{ title: "getSuggestions()", slug: "getsuggestions()" },
+				{ title: "getPlaceDetails()", slug: "getplacedetails()" },
+				{ title: "autocomplete()", slug: "autocomplete()" },
 			]}
 		>
 			{/* ------------------------------------------------------------ */}
@@ -338,9 +338,8 @@ export default function ApiReferencePage() {
 
 			<DocsSection title="Autocomplete">
 				<p>
-					The <DocsCode>{"<Autocomplete />"}</DocsCode> component is a drop-in
-					Google Maps address input. It wraps a shadcn/ui <DocsCode>Input</DocsCode>{" "}
-					with a <DocsCode>Popover</DocsCode> listbox, keyboard navigation, and
+					<DocsCode>{"<Autocomplete />"}</DocsCode> wraps the BaseUI <DocsCode>Autocomplete</DocsCode>,{" "}
+					Customizing keyboard navigation and opening logic, using
 					the <DocsCode>useAutocomplete</DocsCode> hook internally.
 				</p>
 
@@ -393,11 +392,11 @@ export default function ApiReferencePage() {
 				</p>
 				<ul>
 					<li>
-						<strong>Uncontrolled</strong> (default) — the hook creates and
+						<strong>Automatic</strong> (default) — the hook creates and
 						rotates session tokens internally. No extra work required.
 					</li>
 					<li>
-						<strong>Controlled</strong> — pass your own{" "}
+						<strong>Manual</strong> — pass your own{" "}
 						<DocsCode>sessionToken</DocsCode> and listen to{" "}
 						<DocsCode>onSessionEnd</DocsCode> to supply a fresh one when a
 						session ends.
@@ -455,8 +454,8 @@ export default function ApiReferencePage() {
 				<CodeBlock code={getSuggestionsCode} />
 				<DocsNote>
 					Passing an empty string clears the current suggestions and ends the
-					session — in uncontrolled mode the token is rotated automatically; in
-					controlled mode <DocsCode>onSessionEnd</DocsCode> is fired so you can
+					session — in automatic mode the token is rotated automatically; in
+					manual mode <DocsCode>onSessionEnd</DocsCode> is fired so you can
 					supply a fresh token.
 				</DocsNote>
 			</DocsSection>
@@ -474,8 +473,8 @@ export default function ApiReferencePage() {
 				<CodeBlock code={getPlaceDetailsCode} />
 				<DocsNote>
 					After each call, the current session ends and the suggestions list is
-					cleared. In uncontrolled mode the token is rotated automatically; in
-					controlled mode <DocsCode>onSessionEnd</DocsCode> is fired. This keeps
+					cleared. In automatic mode the token is rotated automatically; in
+					manual mode <DocsCode>onSessionEnd</DocsCode> is fired. This keeps
 					Google Maps API billing efficient by bundling autocomplete requests into
 					sessions.
 				</DocsNote>

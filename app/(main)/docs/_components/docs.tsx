@@ -100,12 +100,13 @@ export function DocsLayout({
 interface DocsSectionProps {
 	title?: string;
 	children: React.ReactNode;
+	className?: string;
 }
 
-export function DocsSection({ title, children }: DocsSectionProps) {
+export function DocsSection({ title, children, className }: DocsSectionProps) {
 	const id = title ? slugify(title) : undefined;
 	return (
-		<section className="scroll-m-24 space-y-5" id={id}>
+		<section className={cn("scroll-m-24 space-y-5", className)} id={id}>
 			{title && (
 				<h2 className="text-foreground text-xl font-semibold tracking-tight">
 					{title}

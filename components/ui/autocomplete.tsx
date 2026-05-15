@@ -3,9 +3,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { MapPinIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
+import { Autocomplete as AutocompleteBase } from '@base-ui/react/autocomplete';
 import { useAutocomplete } from '@/hooks/use-autocomplete';
 import type {
     PlaceDetails,
@@ -14,180 +12,28 @@ import type {
     UseAutocompleteOptions
 } from '@/hooks/use-autocomplete';
 
-
-type AutocompleteContextValue = {
-    listId: string;
-    isOpen: boolean;
-    highlightedIndex: number;
-    isStale: boolean;
-    places: PlacePrediction[] | undefined;
-    anchorRef: React.RefObject<HTMLDivElement | null>;
-    setHighlightedIndex: React.Dispatch<React.SetStateAction<number>>;
-    handleSelect: (prediction: PlacePrediction) => Promise<void>;
-    handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-    handleFocus: (e: React.FocusEvent<HTMLInputElement>) => void;
-    handleBlur: (e: React.FocusEvent<HTMLInputElement>) => void;
-};
-
-const AutocompleteContext = React.createContext<AutocompleteContextValue | null>(null);
-
-function useAutocompleteContext() {
-    const ctx = React.useContext(AutocompleteContext);
-    if (!ctx) {
-        throw new Error('Autocomplete compound components must be used within <Autocomplete>');
-    }
-    return ctx;
-}
-
-function AutocompleteInput({
-    className,
-    disabled,
-    ...props
-}: React.ComponentProps<'input'>) {
-    const ctx = useAutocompleteContext();
-
-    return (
-        <PopoverAnchor asChild>
-            <div ref={ctx.anchorRef} data-slot="autocomplete">
-                <Input
-                    data-slot="autocomplete-input"
-                    className={className}
-                    onChange={ctx.handleChange}
-                    onKeyDown={ctx.handleKeyDown}
-                    onFocus={ctx.handleFocus}
-                    onBlur={ctx.handleBlur}
-                    disabled={disabled}
-                    role="combobox"
-                    aria-expanded={ctx.isOpen}
-                    aria-haspopup="listbox"
-                    aria-autocomplete="list"
-                    aria-controls={ctx.isOpen ? ctx.listId : undefined}
-                    aria-activedescendant={
-                        ctx.highlightedIndex >= 0 ? `${ctx.listId}-${ctx.highlightedIndex}` : undefined
-                    }
-                    autoComplete="off"
-                    {...props}
-                />
-            </div>
-        </PopoverAnchor>
-    );
-}
-
-function AutocompleteItem({
-    prediction,
-    index,
-}: {
-    prediction: PlacePrediction;
-    index: number;
-}) {
-    const ctx = useAutocompleteContext();
-    const isHighlighted = index === ctx.highlightedIndex;
-
-    return (
-        <Button
-            variant="ghost"
-            type="button"
-            id={`${ctx.listId}-${index}`}
-            role="option"
-            aria-selected={isHighlighted}
-            data-slot="autocomplete-option"
-            className={cn(
-                'h-auto w-full justify-start gap-1.5 rounded-md px-1.5 py-1 font-normal cursor-default',
-                isHighlighted
-                    ? 'bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground'
-                    : 'text-popover-foreground',
-            )}
-            onMouseEnter={() => ctx.setHighlightedIndex(index)}
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => ctx.handleSelect(prediction)}
-        >
-            <MapPinIcon className="size-4 shrink-0 text-muted-foreground" />
-            <span className="truncate">
-                <HighlightedText formattable={prediction.mainText} />
-            </span>
-            {prediction.secondaryText?.text && (
-                <span className="truncate text-xs text-muted-foreground">
-                    {prediction.secondaryText.text}
-                </span>
-            )}
-        </Button>
-    );
-}
-
-function AutocompleteList() {
-    const ctx = useAutocompleteContext();
-
-    if (!ctx.places?.length){
-        return null;
-    };
-
-    return (
-        <PopoverContent
-            data-slot="autocomplete-listbox"
-            className="max-h-60 overflow-y-auto p-1 w-(--radix-popper-anchor-width)"
-            align="start"
-            sideOffset={4}
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            onCloseAutoFocus={(e) => e.preventDefault()}
-            onInteractOutside={(e) => {
-                if (ctx.anchorRef.current?.contains(e.target as Node)) {
-                    e.preventDefault();
-                }
-            }}
-        >
-            <div
-                id={ctx.listId}
-                role="listbox"
-                className={cn(ctx.isStale && 'pointer-events-none')}
-            >
-                {ctx.places.map((prediction, index) => (
-                    <AutocompleteItem
-                        key={prediction.placeId}
-                        prediction={prediction}
-                        index={index}
-                    />
-                ))}
-            </div>
-            <div className="flex items-center justify-end gap-1 px-1 mt-1">
-                <span className="text-[10px] text-muted-foreground">Powered by</span>
-                <GoogleIcon className="w-12 h-6" />
-            </div>
-        </PopoverContent>
-    );
-}
-
-type AutocompleteProps = React.ComponentProps<'input'> & {
+type AutocompleteProps = Omit<React.ComponentProps<'input'>, 'value'> & {
     /**
      * The Google Maps API key to use.
-     * 
+     *
      * @see https://developers.google.com/maps/documentation/javascript/get-api-key
      */
     apiKey: string;
     /**
      * The options passed on Google Autocomplete API setup.
-     * 
+     *
      * @see UseAutocompleteOptions
      */
     options?: UseAutocompleteOptions;
     /**
      * The options to pass to every suggestion fetch request.
-     * 
+     *
      * @see FetchParams
      */
     fetchParams?: FetchParams;
     /**
-     * The output format to use for the selected place.
-     * 
-     * @default 'routeOnly'
-     * 
-     * - routeOnly: '123 Main St'
-     * - formatted: '123 Main St, Anytown, USA'
-     */
-    output?: 'routeOnly' | 'formatted';
-    /**
      * The function to call when a place is selected.
-     * 
+     *
      * @param details The details of the selected place.
      * It already has some formatted informations like street, city, country, etc.
      * Additionally it contains the raw place object from the Google Autocomplete API.
@@ -195,9 +41,9 @@ type AutocompleteProps = React.ComponentProps<'input'> & {
     onPlaceSelect?: (details: PlaceDetails) => void;
     /**
      * The debounce time in milliseconds to wait before fetching suggestions.
-     * 
+     *
      * It's advised to set this to at least 200ms to avoid excessive API calls and improve user experience.
-     * 
+     *
      * @default 200
      */
     debounceMs?: number;
@@ -208,13 +54,13 @@ function Autocomplete({
     apiKey,
     options,
     fetchParams,
-    output = 'routeOnly',
     onPlaceSelect,
     debounceMs,
     onChange,
     onFocus,
     onBlur,
     disabled,
+    defaultValue,
     ...props
 }: AutocompleteProps) {
     const { isLoaded, isStale, getSuggestions, getPlaceDetails, places } = useAutocomplete(apiKey, {
@@ -223,114 +69,136 @@ function Autocomplete({
     });
 
     const [isOpen, setIsOpen] = React.useState(false);
-    const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
-
-    const anchorRef = React.useRef<HTMLDivElement>(null);
-    const listId = React.useId();
+    const [inputValue, setInputValue] = React.useState(() => {
+        if (defaultValue == null) {
+            return '';
+        }
+        return String(defaultValue);
+    });
 
     React.useEffect(() => {
         if (places !== undefined) {
             setIsOpen(places.length > 0);
-            setHighlightedIndex(-1);
         }
     }, [places]);
 
-    React.useEffect(() => {
-        if (highlightedIndex < 0) {
-            return
-        };
-        document.getElementById(`${listId}-${highlightedIndex}`)
-            ?.scrollIntoView({ block: 'nearest' });
-    }, [highlightedIndex, listId]);
+    const handleValueChange = (
+        val: string,
+        details: AutocompleteBase.Root.ChangeEventDetails,
+    ) => {
+        setInputValue(val);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(e);
-        getSuggestions(e.target.value, fetchParams);
+        const syntheticEvent = {
+            target: { value: val },
+            currentTarget: { value: val },
+        } as React.ChangeEvent<HTMLInputElement>;
+        onChange?.(syntheticEvent);
+        if (details.reason !== 'item-press') {
+            getSuggestions(val, fetchParams);
+        }
     };
 
-    const handleSelect = async (prediction: PlacePrediction) => {
+    const handleOpenChange = (open: boolean) => {
+        if (!open) setIsOpen(false);
+    };
+
+    const handleItemClick = async (prediction: PlacePrediction) => {
         setIsOpen(false);
-        setHighlightedIndex(-1);
         const details = await getPlaceDetails(prediction);
         onPlaceSelect?.(details);
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (!isOpen || !places?.length) {
-            return
-        };
-
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                setHighlightedIndex((prev) =>
-                    prev < places.length - 1 ? prev + 1 : 0
-                );
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                setHighlightedIndex((prev) =>
-                    prev > 0 ? prev - 1 : places.length - 1
-                );
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (highlightedIndex >= 0 && places[highlightedIndex]) {
-                    handleSelect(places[highlightedIndex]);
-                }
-                break;
-            case 'Escape':
-                setIsOpen(false);
-                setHighlightedIndex(-1);
-                break;
-        }
-    };
-
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-        if (props.value && places?.length) {
+        if (inputValue && places?.length) {
             setIsOpen(true);
         }
         onFocus?.(e);
     };
 
-    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-        onBlur?.(e);
-    };
-
-    const contextValue: AutocompleteContextValue = {
-        listId,
-        isOpen,
-        highlightedIndex,
-        isStale,
-        places,
-        anchorRef,
-        setHighlightedIndex,
-        handleSelect,
-        handleChange,
-        handleKeyDown,
-        handleFocus,
-        handleBlur,
-    };
-
     return (
-        <AutocompleteContext.Provider value={contextValue}>
-            <Popover
-                open={isOpen}
-                onOpenChange={(open) => {
-                    if (!open) {
-                        setIsOpen(false);
-                        setHighlightedIndex(-1);
-                    }
-                }}
-            >
-                <AutocompleteInput
-                    className={className}
-                    disabled={!isLoaded || disabled}
-                    {...props}
-                />
-                <AutocompleteList />
-            </Popover>
-        </AutocompleteContext.Provider>
+        <AutocompleteBase.Root
+            items={places ?? []}
+            open={isOpen}
+            onOpenChange={handleOpenChange}
+            filter={null}
+            value={inputValue}
+            onValueChange={handleValueChange}
+            itemToStringValue={(p: PlacePrediction) => p.mainText?.text ?? ''}
+        >
+            <AutocompleteBase.Input
+                data-slot="autocomplete-input"
+                className={cn(
+                    'h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none',
+                    'placeholder:text-muted-foreground',
+                    'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
+                    'disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50',
+                    'aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20',
+                    'md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
+                    className,
+                )}
+                disabled={!isLoaded || disabled}
+                onFocus={handleFocus}
+                onBlur={onBlur}
+                autoComplete="off"
+                {...props}
+            />
+
+            <AutocompleteBase.Portal>
+                <AutocompleteBase.Positioner
+                    sideOffset={4}
+                    align="start"
+                    className="isolate z-50 outline-none"
+                >
+                    <AutocompleteBase.Popup
+                        data-slot="autocomplete-listbox"
+                        className={cn(
+                            'z-50 max-h-(--available-height) w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none',
+                            'data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2',
+                            'data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2',
+                            'data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95',
+                            'data-closed:animate-out data-closed:overflow-hidden data-closed:fade-out-0 data-closed:zoom-out-95',
+                        )}
+                    >
+                        <AutocompleteBase.Empty>
+                            <div className="px-1.5 py-2 text-center text-sm text-muted-foreground">
+                                No results found.
+                            </div>
+                        </AutocompleteBase.Empty>
+                        <AutocompleteBase.List
+                            className={cn('p-1', isStale && 'pointer-events-none')}
+                        >
+                            {(prediction: PlacePrediction) => (
+                                <AutocompleteBase.Item
+                                    key={prediction.placeId}
+                                    value={prediction}
+                                    onClick={() => handleItemClick(prediction)}
+                                    className={cn(
+                                        'group/autocomplete-item relative flex h-auto w-full cursor-default items-center gap-1.5 rounded-md px-1.5 py-1 text-sm outline-hidden select-none',
+                                        'text-popover-foreground data-highlighted:bg-accent data-highlighted:text-accent-foreground',
+                                        'data-disabled:pointer-events-none data-disabled:opacity-50',
+                                        "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+                                    )}
+                                >
+                                    <MapPinIcon className="size-4 shrink-0 text-muted-foreground" />
+                                    <span className="truncate">
+                                        <HighlightedText formattable={prediction.mainText} />
+                                    </span>
+                                    {prediction.secondaryText?.text && (
+                                        <span className="truncate text-xs text-muted-foreground">
+                                            {prediction.secondaryText.text}
+                                        </span>
+                                    )}
+                                </AutocompleteBase.Item>
+                            )}
+                        </AutocompleteBase.List>
+                        <div className="mt-1 flex items-center justify-end gap-1 px-1 pt-1">
+                            <span className="text-[10px] text-muted-foreground">Powered by</span>
+                            <GoogleIcon className="h-6 w-12" />
+                        </div>
+                    </AutocompleteBase.Popup>
+                </AutocompleteBase.Positioner>
+            </AutocompleteBase.Portal>
+        </AutocompleteBase.Root>
     );
 }
 
@@ -338,15 +206,15 @@ function Autocomplete({
 // Internal utilities
 // ---------------------------------------------------------------------------
 
-function HighlightedText({ formattable }: { formattable: google.maps.places.FormattableText | null }) {
-    if (!formattable){
-        return null;
-    };
+function HighlightedText({
+    formattable,
+}: {
+    formattable: google.maps.places.FormattableText | null | undefined;
+}) {
+    if (!formattable) return null;
 
     const { text, matches } = formattable;
-    if (!matches.length) {
-        return text;
-    }
+    if (!matches?.length) return <>{text}</>;
 
     const segments: React.ReactNode[] = [];
     let cursor = 0;
@@ -358,7 +226,7 @@ function HighlightedText({ formattable }: { formattable: google.maps.places.Form
         segments.push(
             <span key={startOffset} className="font-semibold">
                 {text.slice(startOffset, endOffset)}
-            </span>
+            </span>,
         );
         cursor = endOffset;
     }
@@ -381,7 +249,6 @@ const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
         <path fill="#34A853" d="M1014 14h45v306h-45z" />
     </svg>
 );
-
 
 export { Autocomplete };
 export type { AutocompleteProps };

@@ -99,58 +99,51 @@ export default function InstallationPage() {
 			title="Installation"
 			description="How to install and set up autocompletecn in your project."
 			prev={{ title: "Getting Started", href: "/docs" }}
-			next={{ title: "API Reference", href: "/docs/api-reference" }}
+			next={{ title: "Usage", href: "/docs/usage" }}
 			toc={[
 				{ title: "Prerequisites", slug: "prerequisites" },
-				{ title: "Basic Installation", slug: "basic-installation" },
-				{ title: "Install Just the Hook", slug: "install-just-the-hook" },
-				{ title: "Component Usage", slug: "component-usage" },
+				{ title: "Installation", slug: "installation" },
+				{ title: "Usage", slug: "usage" },
 				{ title: "Hook-only Usage", slug: "hook-only-usage" },
 				{ title: "Google Maps API Key Guide", slug: "google-maps-api-key-guide" },
 			]}
 		>
 			<DocsSection title="Prerequisites">
-				<p>
+				<ul>
+					<li>
 					A project with{" "}
 					<DocsLink href="https://tailwindcss.com" external>
 						Tailwind CSS
-					</DocsLink>{" "}
-					and{" "}
-					<DocsLink href="https://ui.shadcn.com" external>
-						shadcn/ui
-					</DocsLink>{" "}
-					set up.
-				</p>
-				<p>
+					</DocsLink> set up.
+					</li>
+					<li>
 					A Google Maps API key
 					with the <strong>Places API (New)</strong> enabled. <DocsLink href="#google-maps-api-key-guide">Below</DocsLink> there's a guide on how to get one.
-				</p>
+					</li>
+				</ul>
 			</DocsSection>
 
-			<DocsSection title="Basic Installation">
+			<DocsSection title="Installation">
 				<p>
-					Run the following command to add the full autocomplete component. This
-					will also install the <DocsCode>useAutocomplete</DocsCode> hook as a
-					dependency:
+					Run the following command:
 				</p>
 				<CodeBlock code={installComponentCommand} language="bash" />
-			</DocsSection>
 
-			<DocsSection title="Install Just the Hook">
 				<p>
-					If you want to build your own UI, you can install only the hook:
+					Or just the hook:
 				</p>
 				<CodeBlock code={installHookCommand} language="bash" />
 				<p>
-					This gives you <DocsCode>useAutocomplete</DocsCode> with all the
-					Google Places API logic &mdash; suggestions, place details, and session
-					token management &mdash; without any UI components.
+					This gives you all the <DocsCode>useAutocomplete</DocsCode> capabilities without any UI components.
 				</p>
 			</DocsSection>
 
-			<DocsSection title="Component Usage">
+			<DocsSection title="Usage">
 				<p>Import and use the autocomplete component:</p>
 				<CodeBlock code={componentUsageCode} />
+				<DocsNote>
+					Check the <DocsLink href="/docs/usage">Usage</DocsLink> page for more examples.
+				</DocsNote>
 			</DocsSection>
 
 			<DocsSection title="Hook-only Usage">

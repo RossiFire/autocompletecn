@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 	description: "How autocompletecn manages Google Maps session tokens and how to take full control when needed.",
 };
 
-const uncontrolledCode = `import { useAutocomplete } from "@/hooks/use-autocomplete";
+const auotomaticTokenCode = `import { useAutocomplete } from "@/hooks/use-autocomplete";
 
 const { getSuggestions, getPlaceDetails, places } = useAutocomplete(
   process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!
@@ -22,7 +22,7 @@ const { getSuggestions, getPlaceDetails, places } = useAutocomplete(
 // Token is created on load, rotated after each selection or input clear.
 // You don't need to do anything.`;
 
-const controlledCode = `import { useAutocomplete } from "@/hooks/use-autocomplete";
+const manualCode = `import { useAutocomplete } from "@/hooks/use-autocomplete";
 import { useState, useCallback } from "react";
 
 function useSessionToken() {
@@ -51,9 +51,9 @@ export function CustomAutocomplete() {
   // ...
 }`;
 
-const componentControlledCode = `import { Autocomplete } from "@/components/ui/autocomplete";
+const componentManualCode = `import { Autocomplete } from "@/components/ui/autocomplete";
 
-// The <Autocomplete /> component uses uncontrolled mode internally.
+// The <Autocomplete /> component uses automatic mode internally.
 // Session tokens are fully managed for you — no extra props needed.
 
 <Autocomplete
@@ -77,9 +77,9 @@ export default function SessionTokenPage() {
 					title: "What is a Session Token?",
 					slug: "what-is-a-session-token",
 				},
-				{ title: "Uncontrolled mode", slug: "uncontrolled-mode" },
-				{ title: "Controlled mode", slug: "controlled-mode" },
-				{ title: "When to use controlled", slug: "when-to-use-controlled" },
+				{ title: "Automatic mode", slug: "automatic-mode" },
+				{ title: "Manual mode", slug: "manual-mode" },
+				{ title: "When to use manual", slug: "when-to-use-manual" },
 				{
 					title: "Autocomplete component",
 					slug: "autocomplete-component",
@@ -105,7 +105,7 @@ export default function SessionTokenPage() {
 				</p>
 			</DocsSection>
 
-			<DocsSection title="Uncontrolled mode">
+			<DocsSection title="Automatic mode">
 				<p>
 					By default, <DocsCode>useAutocomplete</DocsCode> manages the full
 					session token lifecycle internally. A token is created when the
@@ -120,14 +120,14 @@ export default function SessionTokenPage() {
 						(input cleared)
 					</li>
 				</ul>
-				<CodeBlock code={uncontrolledCode} />
+				<CodeBlock code={auotomaticTokenCode} />
 				<DocsNote>
 					This is the recommended approach for most use cases. You get correct
 					billing behavior without writing any token management code.
 				</DocsNote>
 			</DocsSection>
 
-			<DocsSection title="Controlled mode">
+			<DocsSection title="Manual mode">
 				<p>
 					If you need full control over the session token — for example to
 					share it across multiple hook instances, tie it to your own state
@@ -135,10 +135,10 @@ export default function SessionTokenPage() {
 					<DocsCode>sessionToken</DocsCode> and{" "}
 					<DocsCode>onSessionEnd</DocsCode> to the hook options:
 				</p>
-				<CodeBlock code={controlledCode} />
+				<CodeBlock code={manualCode} />
 				<p>
 					When <DocsCode>sessionToken</DocsCode> is provided, the hook enters{" "}
-					<strong>controlled mode</strong>:
+					<strong>manual mode</strong>:
 				</p>
 				<ul>
 					<li>
@@ -164,7 +164,7 @@ export default function SessionTokenPage() {
 				</DocsNote>
 			</DocsSection>
 
-			<DocsSection title="When to use controlled">
+			<DocsSection title="When to use manual">
 				<ul>
 					<li>
 						<strong>Shared token</strong> — multiple autocomplete instances
@@ -180,18 +180,18 @@ export default function SessionTokenPage() {
 					</li>
 				</ul>
 				<p>
-					If none of the above applies, stick with uncontrolled mode.
+					If none of the above applies, stick with automatic mode.
 				</p>
 			</DocsSection>
 
 			<DocsSection title="Autocomplete component">
 				<p>
 					The <DocsCode>{"<Autocomplete />"}</DocsCode> component uses{" "}
-					<DocsCode>useAutocomplete</DocsCode> in uncontrolled mode under the
+					<DocsCode>useAutocomplete</DocsCode> in automatic mode under the
 					hood. Session tokens are created and rotated automatically — no
 					extra props are needed.
 				</p>
-				<CodeBlock code={componentControlledCode} />
+				<CodeBlock code={componentManualCode} />
 			</DocsSection>
 		</DocsLayout>
 	);

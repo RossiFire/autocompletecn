@@ -35,16 +35,16 @@ let apiInitialized = false;
 
 type UseAutocompleteOptions = Omit<APIOptions, 'key'> & {
     /**
-     * When provided, the hook enters **controlled mode**: it uses this token
+     * When provided, the hook enters **manual mode**: it uses this token
      * directly and never creates or rotates tokens internally.
      * Pair with `onSessionEnd` to know when to supply a fresh token.
      *
-     * When omitted, the hook manages the token lifecycle internally (uncontrolled mode).
+     * When omitted, the hook manages the token lifecycle internally (automatic mode).
      */
     sessionToken?: google.maps.places.AutocompleteSessionToken;
     /**
      * Called when a session ends (place selected or input cleared).
-     * Only relevant in controlled mode — use it to rotate `sessionToken`.
+     * Only relevant in manual mode — use it to rotate `sessionToken`.
      */
     onSessionEnd?: () => void;
     /**
@@ -62,7 +62,7 @@ const useAutocomplete = (
     options?: UseAutocompleteOptions
 ): UseAutocompleteReturn => {
     const { sessionToken: externalToken, onSessionEnd, debounceMs = 200, ...loaderOptions } = options || {};
-    const isControlled = externalToken != null;
+    const isManualTokenManagement = externalToken != null;
 
     const [isLoaded, setIsLoaded] = useState(false);
     const [isStale, setIsStale] = useState(false);
@@ -79,18 +79,18 @@ const useAutocomplete = (
     const requestIdRef = useRef(0);
 
     useEffect(() => {
-        if (isControlled) {
+        if (isManualTokenManagement) {
             sessionTokenRef.current = externalToken;
         }
-    }, [isControlled, externalToken]);
+    }, [isManualTokenManagement, externalToken]);
 
     const rotateToken = useCallback(() => {
-        if (isControlled) {
+        if (isManualTokenManagement) {
             onSessionEndRef.current?.();
         } else {
             sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken();
         }
-    }, [isControlled]);
+    }, [isManualTokenManagement]);
 
     useEffect(() => {
         let cancelled = false;
@@ -104,7 +104,7 @@ const useAutocomplete = (
             if (cancelled) {
                 return;
             };
-            if (!isControlled && !sessionTokenRef.current) {
+            if (!isManualTokenManagement && !sessionTokenRef.current) {
                 sessionTokenRef.current = new placesLib.AutocompleteSessionToken();
             }
             setIsLoaded(true);
